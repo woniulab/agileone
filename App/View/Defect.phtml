@@ -1,0 +1,620 @@
+<script type="text/javascript">
+/* Page init setting for User */
+KE.show({
+    id : 'content',
+    cssPath : '<?= Zend_Registry::get('baseDir')?>/Common/Layout/KindEditor.css'
+});
+var initUrl = "<?= Zend_Registry::get('baseUrl')?>/defect/query";
+var initParam = "currentpage=1";
+var columnName = new Array("defectid", "headline", "creator", "status", "severity", "priority");
+var operate = "edit";
+var currentPage = "1";
+
+$(document).ready(function() {
+	fillData(initUrl, initParam, columnName, operate, currentPage);
+	markDisabled(Array("edit", "showAction", "showAttach", "showReply"));
+	$("#status").attr("selectedIndex", 1);
+	$("#severity").attr("selectedIndex", 2);
+	$("#priority").attr("selectedIndex", 2);
+	$("#actionPanel").show();
+	$("#attachPanel").hide();
+	$("#replyPanel").hide();
+
+	$("#hide_show").toggle(
+		function() {
+			$("#actionPanel").hide();
+			$("#actionFoot").hide();
+			$("#attachPanel").hide();
+			$("#replyPanel").hide();
+			$("#hide_show").text("<?= $this->translate('common.button.show')?>");
+		},
+		function() {
+			$("#actionPanel").show();
+			$("#actionFoot").hide();
+			$("#attachPanel").hide();
+			$("#replyPanel").hide();
+			$("#hide_show").text("<?= $this->translate('common.button.hide')?>");
+	});
+});
+
+/* Show action panel */
+function showActionPanel() {
+	$("#actionPanel").show();
+	$("#actionFoot").show();
+	$("#attachPanel").hide();
+	$("#replyPanel").hide();
+}
+
+/* Show upload panel */
+function showAttachPanel() {
+	if ($.trim($("#defectid").val()) != "") {
+		$("#actionPanel").hide();
+		$("#actionFoot").hide();
+		$("#attachPanel").show();
+		$("#replyPanel").hide();
+		$("#currentDefectId").text($("#defectid").val());
+		markEnabled(Array("showAction"));
+	}
+}
+
+/* Show reply panel */
+function showReplyPanel() {
+	if ($.trim($("#defectid").val()) != "") {
+		$("#actionPanel").hide();
+		$("#actionFoot").hide();
+		$("#attachPanel").hide();
+		$("#replyPanel").show();
+		markEnabled(Array("showAction"));
+		$("#extratwo").attr("selectedIndex", 0);
+	}
+}
+
+/* Fill data to action panel for Edit */
+function goEdit(obj, isEdit) {
+	var dataRow = $(obj).parent().parent().children();
+	var param = "defectid=" + dataRow.eq(0).text();
+	$.post(initUrl, param, function (data) {
+		var json = eval(data);
+    	var lenJson = json.length - 1;
+    	if (lenJson == 1) {
+        	$("#defectid").val(json[0]['defectid']);
+        	$("#source").val(json[0]['source']);
+        	$("#creator").val(json[0]['creator']);
+        	$("#createdtime").val(json[0]['createdtime']);
+        	$("#status").val(json[0]['status']);
+        	$("#severity").val(json[0]['severity']);
+        	$("#priority").val(json[0]['priority']);
+        	$("#module").val(json[0]['module']);
+        	$("#platform").val(json[0]['platform']);
+        	$("#version").val(json[0]['version']);
+        	$("#headline").val(json[0]['headline']);
+        	setKEContent('content', json[0]['content']);
+        	$("#extraone").val(json[0]['status']);
+        	$("#extratwo").val("<?= $_SESSION['userName']?>");
+    	}
+    	else {
+        	$("#msg").text("<?= $this->translate('message.common.nodata')?>");
+    	}
+	});
+	fillAttach(dataRow.eq(0).text());
+	fillReply(dataRow.eq(0).text());
+	
+	if (isEdit) {
+		markEnabled(Array("edit", "showAttach", "showReply"));
+		markDisabled(Array("add", "defectid"));
+	}
+	else {
+		markDisabled(Array("edit"));
+		markEnabled(Array("add", "defectid", "showAttach", "showReply"));
+	}
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	$("#actionPanel").show();
+	$("#attachPanel").hide();
+	$("#replyPanel").hide();
+	location.href = "#top";
+}
+
+/* Add new data */
+function doAdd() {
+	var content = replaceAmp(KE.util.getData('content'));
+    if (isNull("headline")) {
+		$("#msg").text("<?= $this->translate('message.defect.headline.null')?>");
+		return false;
+	}
+    if ($.trim(content) == "") {
+		$("#msg").text("<?= $this->translate('message.defect.content.null')?>");
+		KE.util.focus('content');
+		return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/defect/add";
+	var param = "source=" + $.trim($("#source").val()) + 
+			"&status=" + $.trim($("#status").val()) + 
+			"&severity=" + $.trim($("#severity").val()) + 
+			"&priority=" + $.trim($("#priority").val()) + 
+			"&module=" + $.trim($("#module").val()) + 
+			"&platform=" + $.trim($("#platform").val()) + 
+			"&version=" + $.trim($("#version").val()) + 
+			"&headline=" + $.trim($("#headline").val()) + 
+			"&content=" + content;
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+    	case "defect_exist":
+    		$("#msg").text("<?= $this->translate('message.defect.headline.exist')?>");
+    		$("#headline").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillData(initUrl, initParam, columnName, operate, currentPage);
+    		$("#defectid").val(data);
+    		markEnabled(Array("showAttach", "showReply"));
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+    });
+}
+
+/* Edit existing data */
+function doEdit() {
+	var content = replaceAmp(KE.util.getData('content'));
+	if (isNull("headline")) {
+		$("#msg").text("<?= $this->translate('message.defect.headline.null')?>");
+		return false;
+	}
+    if ($.trim(content) == "") {
+		$("#msg").text("<?= $this->translate('message.defect.content.null')?>");
+		KE.util.focus('content');
+		return false;
+	}
+    var defectid = $.trim($("#defectid").val());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/defect/edit";
+	var param = "defectid=" + defectid + 
+				"&source=" + $.trim($("#source").val()) + 
+				"&status=" + $.trim($("#status").val()) + 
+				"&severity=" + $.trim($("#severity").val()) + 
+				"&priority=" + $.trim($("#priority").val()) + 
+				"&module=" + $.trim($("#module").val()) + 
+				"&platform=" + $.trim($("#platform").val()) + 
+				"&version=" + $.trim($("#version").val()) + 
+				"&headline=" + $.trim($("#headline").val()) + 
+				"&content=" + content;
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.edit')?>");
+    		break;
+    	case "defect_exist":
+    		$("#msg").text("<?= $this->translate('message.defect.headline.exist')?>");
+    		$("#headline").focus();
+    		break;
+    	case "1":
+    		fillEdit(initUrl, "defectid=" + defectid, columnName, defectid);
+    		$("#msg").text("<?= $this->translate('message.common.edit.successful')?>" + $("#defectid").val());
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.edit.failed')?>" + $("#defectid").val());
+    		break;
+        default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+/* Delete data according to ID */
+function doDelete(obj) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var dataRow = $(obj).parent().parent().children();
+	var defectid = $.trim(dataRow.eq(0).text());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/defect/delete";
+	var param = "defectid=" + defectid;
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.delete')?>");
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + defectid);
+			dataRow.remove();
+			$("#totalRecord").text($("#totalRecord").text() - 1);
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + defectid);
+    		break;
+    	default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+/* Search data */
+function doSearch(isSearch, currentPage) {
+	if (isSearch) {
+		$("#cacheDiv").removeData("cacheData");
+		var cacheArray = new Array();
+		cacheArray['defectid'] = $.trim($("#defectid").val());
+		cacheArray['creator'] = $.trim($("#creator").val());
+		cacheArray['source'] = $.trim($("#source").val());
+		cacheArray['status'] = $.trim($("#status").val());
+		cacheArray['severity'] = $.trim($("#severity").val());
+		cacheArray['priority'] = $.trim($("#priority").val());
+		cacheArray['module'] = $.trim($("#module").val());
+		cacheArray['platform'] = $.trim($("#platform").val());
+		cacheArray['version'] = $.trim($("#version").val());
+		cacheArray['headline'] = $.trim($("#headline").val());
+		cacheArray['content'] = replaceAmp($.trim(KE.util.getPureData('content')));
+		$("#cacheDiv").data("cacheData", cacheArray);
+	}
+	var cacheData = $("#cacheDiv").data("cacheData");
+	if (typeof(cacheData) == "undefined")
+		var param = "currentpage=" + currentPage;
+	else
+		var param = "currentpage=" + currentPage +
+					"&defectid=" + cacheData['defectid'] + 
+					"&creator=" + cacheData['creator'] + 
+					"&source=" + cacheData['source'] + 
+			    	"&status=" + cacheData['status'] + 
+			    	"&severity=" + cacheData['severity'] + 
+			    	"&priority=" + cacheData['priority'] + 
+			    	"&module=" + cacheData['module'] + 
+			    	"&platform=" + cacheData['platform'] + 
+			    	"&version=" + cacheData['version'] + 
+			    	"&headline=" + cacheData['headline'] + 
+			    	"&content=" + cacheData['content'];
+	fillData(initUrl, param, columnName, operate, currentPage);
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+}
+
+/* Reset KE content */
+function resetKE() {
+	setKEContent("content", "");
+}
+
+
+//////////////////////////////////////////
+function ajaxFileUpload()
+{
+	$.ajaxFileUpload({
+		url:"<?= Zend_Registry::get('baseUrl')?>/attach/upload/refertype/defect/referid/" + $("#defectid").val(),
+		secureuri:false,
+		fileElementId:'fileToUpload',
+		dataType: 'text',
+		data: 'refertype=defect',
+		success: function (data) {
+			var json = eval("[" + data + "]");
+			attachInfo = "<tr>";
+			attachInfo += "<td style='padding-left: 30px'>" + json[0]["attachid"] + "</td>";
+			attachInfo += "<td><a href=<?= Zend_Registry::get('baseDir')?>/Attachment/" + json[0]["folder"] + "/" + json[0]["storename"] + ">" + json[0]["filename"] + "</a></td>";
+			attachInfo += "<td>" + json[0]["size"] + "</td>";
+			attachInfo += "<td>" + json[0]["creator"] + "</td>";
+			attachInfo += "<td><label onclick='deleteAttachment(this)'><?= $this->translate('common.button.delete')?></label></td>";
+			attachInfo += "</tr>";
+			$("#attachList").append(attachInfo);
+		},
+		error: function (data) {
+			$("#msg").text(data);
+		}
+	})
+	return false;
+}
+
+function deleteAttachment(obj) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var dataRow = $(obj).parent().parent().children();
+	var attachid = $.trim(dataRow.eq(0).text());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/attach/delete";
+	var param = "attachid=" + attachid +
+				"&refertype=defect";
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.delete')?>");
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + attachid);
+			dataRow.remove();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + attachid);
+    		break;
+    	default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+function fillAttach(referid) {
+	var url = "<?= Zend_Registry::get('baseUrl')?>/attach/query";
+	var param = "refertype=defect" + 
+				"&referid=" + referid;
+	$.post(url, param, function(data) {
+		var json = eval(data);
+		var lenJson = json.length;
+		attachInfo = "";
+		for (i = 0; i < lenJson; i++) {
+			attachInfo += "<tr>";
+			attachInfo += "<td style='padding-left: 30px'>" + json[i]["attachid"] + "</td>";
+			attachInfo += "<td><a href=<?= Zend_Registry::get('baseDir')?>/Attachment/" + json[i]["folder"] + "/" + json[i]["storename"] + ">" + json[i]["filename"] + "</a></td>";
+			attachInfo += "<td>" + json[i]["size"] + "</td>";
+			attachInfo += "<td>" + json[i]["creator"] + "</td>";
+			attachInfo += "<td><label onclick='deleteAttachment(this)'><?= $this->translate('common.button.delete')?></label></td>";
+			attachInfo += "</tr>";
+		}
+		$("#attachList").html(attachInfo);
+	});
+}
+//////////////////////////////////////////
+
+function fillReply(referid) {
+	var url = "<?= Zend_Registry::get('baseUrl')?>/reply/query";
+	var param = "refertype=defect" + 
+				"&referid=" + referid;
+	$.post(url, param, function(data) {
+		var json = eval(data);
+		var lenJson = json.length;
+		replyInfo = "";
+		for (i = 0; i < lenJson; i++) {
+			replyInfo += "<tr>";
+			replyInfo += "<td style='padding-left: 30px'>" + json[i]["replyid"] + "</td>";
+			replyInfo += "<td>" + json[i]["extraone"] + "</td>";
+			replyInfo += "<td>" + json[i]["extratwo"] + "</td>";
+			replyInfo += "<td colspan='2'>[" + json[i]["replier"] + "  --  " + json[i]["createdtime"] + "]: " + json[i]["content"] + "</td>";
+			replyInfo += "</tr>";
+		}
+		$("#replyList").html(replyInfo);
+	});
+}
+
+function addReply() {
+	var url = "<?= Zend_Registry::get('baseUrl')?>/reply/add";
+	var param = "refertype=defect" + 
+				"&referid=" + $("#defectid").val() +
+				"&content=" + $("#replycontent").val() +
+				"&extraone=" + $("#extraone").val() +
+				"&extratwo=" + $("#extratwo").val();
+	$.post(url, param, function (data) {
+    	switch (data) {
+    	case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillReply($("#defectid").val());
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+    });
+}
+</script>
+
+<br />
+<table class="table-action">
+<thead>
+<tr>
+	<a name="top"></a>
+	<td colspan="5">
+	    <?= $this->translate('common.page.panel')?>:&nbsp;&nbsp;
+	    <label id="hide_show"><?= $this->translate('common.button.hide')?></label>&nbsp;
+	    <label id="showAction" onclick="showActionPanel()"><?= $this->translate('tip.defect.panel.main')?></label>&nbsp;
+	    <label id="showReply" onclick="showReplyPanel()"><?= $this->translate('tip.defect.panel.reply')?></label>&nbsp;
+	    <label id="showAttach" onclick="showAttachPanel()"><?= $this->translate('tip.defect.panel.attachment')?></label>
+	</td>
+</tr>
+</thead>
+<tbody id="actionPanel">
+<tr>
+	<td width="14%"><?= $this->translate('column.common.id')?>:</td>
+	<td width="36%"><input type="text" id="defectid" class="short" title="<?= $this->translate('tip.common.forsearch')?>" /></td>
+	<td width="15%"><?= $this->translate('column.defect.creator')?>:</td>
+	<td width="25%" align="right"><input type="text" id="creator" value="<?= $_SESSION['userName']?>" class="short" title="<?= $this->translate('tip.common.forsearch')?>" /></td>
+	<td width="10%"></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.defect.createdtime')?>:</td>
+	<td><input type="text" id="createdtime" class="short" /></td>
+	<td><?= $this->translate('column.defect.source')?>:</td>
+	<td align="right"><input type="text" id="source" value="<?= $this->source?>" class="short" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.defect.status')?>:</td>
+	<td>
+	<select id="status" class="short">
+		<option value=""></option>
+			<?php
+	        $common = new Common();
+	        $defectStatus = $common->parseDefinition('defect-status');
+		    foreach ($defectStatus as $ds) {
+                echo '<option value="' , $ds , '">' , $ds , '</option>';
+		    }
+	    ?>
+	</select>
+	</td>
+	<td><?= $this->translate('column.defect.severity')?>:</td>
+	<td align="right">
+	<select id="severity" class="short">
+		<option value=""></option>
+			<?php
+	        $common = new Common();
+	        $defectSeverity = $common->parseDefinition('defect-severity');
+		    foreach ($defectSeverity as $ds) {
+                echo '<option value="' , $ds , '">' , $ds , '</option>';
+		    }
+	    ?>
+	</select>
+	</td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.defect.priority')?>:</td>
+	<td>
+	<select id="priority" class="short">
+		<option value=""></option>
+			<?php
+	        $common = new Common();
+	        $defectPriority = $common->parseDefinition('defect-priority');
+		    foreach ($defectPriority as $dp) {
+                echo '<option value="' , $dp , '">' , $dp , '</option>';
+		    }
+	    	?>
+	</select>
+	</td>
+	<td><?= $this->translate('column.defect.module')?>:</td>
+	<td align="right">
+		<select id="module" class="short">
+		<option value=""></option>
+		<?php
+	        foreach ($this->module as $module) {
+	            echo '<option value="' , $module['modname'] , '">' , $module['modname'] , '</option>';
+	        }
+		?>
+		</select>
+	</td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.defect.platform')?>:</td>
+	<td>
+		<select id="platform" class="short">
+		<option value=""></option>
+		<?php
+	        foreach ($this->platform as $platform) {
+	            echo '<option value="' , $platform['pfname'] , '">' , $platform['pfname'] , '</option>';
+	        }
+		?>
+		</select>
+	</td>
+	<td><?= $this->translate('column.defect.version')?>:</td>
+	<td align="right">
+		<select id="version" class="short">
+		<option value=""></option>
+		<?php
+	        foreach ($this->version as $version) {
+	        	$versionBuild = $version['version'] . '.' . $version['build'];
+	            echo '<option value="' , $versionBuild , '">' , $versionBuild , '</option>';
+	        }
+		?>
+		</select>
+	</td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.defect.headline')?>:</td>
+	<td colspan="3"><input type="text" id="headline" maxlength="250" class="long" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.defect.content')?>:</td>
+	<td colspan="3"><textarea id="content" class="long"></textarea></td>
+	<td></td>
+</tr>
+</tbody>
+<tbody id="replyPanel">
+<tr>
+	<td colspan="5" style="padding: 10px 0px 10px 0px">
+		<table class="table-embedded">
+			<thead>
+			<tr>
+				<th width="12%" style='padding-left: 30px'><?= $this->translate('column.common.id')?></th>
+				<th width="13%"><?= $this->translate('column.defect.status')?></th>
+				<th width="15%"><?= $this->translate('column.reply.transferto')?></th>
+				<th width="60%" colspan="2"><?= $this->translate('column.reply.content')?></th>
+			</tr>
+			</thead>
+			<tbody id="replyList"></tbody>
+			<tr>
+				<td style="padding-top: 20px; padding-left: 30px"><?= $this->translate('column.defect.status')?>:</td>
+				<td colspan="2" style="padding-top: 20px">
+				<select id="extraone" style="width: 150px">
+					<?php
+			        $common = new Common();
+			        $defectStatus = $common->parseDefinition('defect-status');
+				    foreach ($defectStatus as $ds) {
+		                echo '<option value="' , $ds , '">' , $ds , '</option>';
+				    }
+				    ?>
+				</select>
+				</td>
+				<td style="padding-top: 20px; text-align: right; width: 40%">
+					<?= $this->translate('column.reply.transferto')?>:&nbsp;&nbsp;
+					<select id="extratwo" style="width: 150px">
+						<option value="" selected></option>
+						<?php
+				        foreach ($this->user as $user) {
+				        	echo '<option value="' . $user['username'] . '">' . $user['username'] . '</option>';
+				        }
+					    ?>
+					</select>
+				</td>
+				<td width="20%"></td>
+			</tr>
+			<tr>
+				<td style="padding-left: 30px"><?= $this->translate('column.reply.content')?>:</td>
+				<td colspan="3">
+					<textarea id="replycontent" style="width:100%; height: 80px;"><?= $this->translate('tip.defect.reply.content')?></textarea>
+				</td>
+				<td>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="<?= $this->translate('common.button.ok')?>" onclick="addReply()" /></td>
+			</tr>
+		</table>
+	</td>
+</tr>
+</tbody>
+<tbody id="attachPanel">
+<form name="uploadForm" action="" method="POST" enctype="multipart/form-data">
+<tr>
+	<td colspan="5" style="padding: 10px 0px 10px 0px">
+		<table class="table-embedded">
+			<thead>
+			<tr>
+				<th width="12%" style='padding-left: 30px'><?= $this->translate('column.common.id')?></th>
+				<th width="38%"><?= $this->translate('column.attach.filename')?></th>
+				<th width="18%"><?= $this->translate('column.attach.size')?></th>
+				<th width="18%"><?= $this->translate('column.attach.creator')?></th>
+				<th width="14%"><?= $this->translate('column.common.operate')?></th>
+			</tr>
+			</thead>
+			<tbody id="attachList"></tbody>
+		</table>
+		<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<?= $this->translate('tip.defect.currentid')?>:&nbsp;<span id="currentDefectId"></span>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input id="fileToUpload" type="file" size="45" name="fileToUpload" />&nbsp;&nbsp;
+		<input id="buttonUpload" type="button" value="<?= $this->translate('common.button.upload')?>" onclick="ajaxFileUpload()" />
+		<br />
+	</td>
+</tr>
+</form>
+</tbody>
+<tfoot id="actionFoot">
+<tr>
+	<td><?= $this->translate('common.page.operate')?>:</td>
+	<td><span id="actionButton" /></td>
+	<td colspan="3">
+		<span id="msg" class="message"><?= $this->translate('tip.common.action')?></span>
+		<span id="loading" class="loading"><img src="<?= Zend_Registry::get('baseDir')?>/Common/Image/loading.gif" /></span>
+	</td>
+</tr>
+</tfoot>
+</table>
+
+<br />
+<table class="table-data" id="dataTable">
+<thead>
+<tr>
+    <th width="8%" class="id"><?= $this->translate('column.common.id')?></th>
+    <th width="35%"><?= $this->translate('column.defect.headline')?></th>
+    <th width="14%"><?= $this->translate('column.defect.creator')?></th>
+    <th width="11%"><?= $this->translate('column.defect.status')?></th>
+    <th width="11%"><?= $this->translate('column.defect.severity')?></th>
+    <th width="11%"><?= $this->translate('column.defect.priority')?></th>
+    <th width="10%"><?= $this->translate('column.common.operate')?></th>
+</tr>
+</thead>
+<tbody id="dataPanel"></tbody>
+<tfoot id="footer"></tfoot>
+</table>

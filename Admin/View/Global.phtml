@@ -1,0 +1,175 @@
+<script type="text/javascript">
+function setRewrite() {
+	var rewrite = $("input[type=radio][name=rewrite][checked]").val();
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/global/setrewrite";
+	var param = "rewrite=" + rewrite;
+	$.post(url, param, function(data) {
+		if (data == "successful") {
+			$("#msgRewrite").text("<?= $this->translate('message.common.successful')?>");
+		}
+		else
+			$("#msgRewrite").text("<?= $this->translate('message.common.failed')?>");
+	});
+}
+function setDefaultLang() {
+	var lang = $("#lang").val();
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/global/setlang";
+	var param = "lang=" + lang;
+	$.post(url, param, function(data) {
+		if (data == "successful") {
+			$("#msgLang").text("<?= $this->translate('message.common.successful')?>");
+		}
+		else
+			$("#msgLang").text("<?= $this->translate('message.common.failed')?>");
+	});
+}
+function setCacheLife() {
+	if (! isNumber("cache")) {
+		$("#msgCache").text("<?= $this->translate('message.common.validate.number')?>");
+		return false;
+	}
+	var cache = $.trim($("#cache").val());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/global/setcache";
+	var param = "cache=" + cache;
+	$.post(url, param, function(data) {
+		if (data == "successful") {
+			$("#msgCache").text("<?= $this->translate('message.common.successful')?>");
+		}
+		else
+			$("#msgCache").text("<?= $this->translate('message.common.failed')?>");
+	});
+}
+function setCookieLife() {
+	if (! isNumber("cookie")) {
+		$("#msgCookie").text("<?= $this->translate('message.common.validate.number')?>");
+		return false;
+	}
+	var cookie = $.trim($("#cookie").val());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/global/setcookie";
+	var param = "cookie=" + cookie;
+	$.post(url, param, function(data) {
+		if (data == "successful") {
+			$("#msgCookie").text("<?= $this->translate('message.common.successful')?>");
+		}
+		else
+			$("#msgCookie").text("<?= $this->translate('message.common.failed')?>");
+	});
+}
+function setPagerSize() {
+	var pagerSize = $.trim($("#pagerSize").val());
+	if (pagerSize <= 0 || pagerSize > 500) {
+		$("#msgPagerSize").text("<?= $this->translate('message.global.pager.invalid')?>");
+		$("#pagerSize").focus();
+		return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/global/setpagersize";
+	var param = "pagersize=" + pagerSize;
+	$.post(url, param, function(data) {
+		if (data == "successful") {
+			$("#msgPagerSize").text("<?= $this->translate('message.common.successful')?>");
+		}
+		else
+			$("#msgPagerSize").text("<?= $this->translate('message.common.failed')?>");
+	});
+}
+function setUploadSize() {
+	var uploadSize = $.trim($("#uploadSize").val());
+	if (uploadSize <= 0 || uploadSize > 102400) {
+		$("#msgUploadSize").text("<?= $this->translate('message.global.upload.invalid')?>");
+		$("#uploadSize").focus();
+		return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/global/setuploadsize";
+	var param = "uploadsize=" + uploadSize;
+	$.post(url, param, function(data) {
+		if (data == "successful") {
+			$("#msgUploadSize").text("<?= $this->translate('message.common.successful')?>");
+		}
+		else
+			$("#msgUploadSize").text("<?= $this->translate('message.common.failed')?>");
+	});
+}
+</script>
+<br />
+<table class="table-admin" align="center">
+<thead class="bottomhr">
+<tr>
+    <td colspan="3"><?= $this->translate('admin.global.lang.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="3"><?= $this->translate('admin.global.lang.tip')?></td>
+</tr>
+<tr>
+	<td width="30%" style="padding-left: 33px">
+	<select id="lang">
+		<option value="en" <?php if (Zend_Registry::get('config')->lang->default == 'en') echo 'selected'?>><?= $this->translate('common.page.english')?></option>
+		<option value="zh" <?php if (Zend_Registry::get('config')->lang->default == 'zh') echo 'selected'?>><?= $this->translate('common.page.chinese')?></option>
+	</select>
+	</td>
+	<td width="20%"><input type="button" onclick="setDefaultLang()" value="<?= $this->translate('common.button.ok')?>" /></td>
+	<td width="50%"><span id="msgLang" class="message" /></td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+    <td colspan="3"><?= $this->translate('admin.global.cache.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="3"><?= $this->translate('admin.global.cache.tip')?></td>
+</tr>
+<tr>
+	<td style="padding-left: 33px"><input type="text" id="cache" value="<?= Zend_Registry::get('config')->cache->lifetime?>" /></td>
+	<td><input type="button" onclick="setCacheLife()" value="<?= $this->translate('common.button.ok')?>" /></td>
+	<td><span id="msgCache" class="message" /></td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+    <td colspan="3"><?= $this->translate('admin.global.cookie.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="3"><?= $this->translate('admin.global.cookie.tip')?></td>
+</tr>
+<tr>
+	<td style="padding-left: 33px"><input type="text" id="cookie" value="<?= Zend_Registry::get('config')->cookie->lifetime?>" /></td>
+	<td><input type="button" onclick="setCookieLife()" value="<?= $this->translate('common.button.ok')?>" /></td>
+	<td><span id="msgCookie" class="message" /></td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+    <td colspan="3"><?= $this->translate('admin.global.pager.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="3"><?= $this->translate('admin.global.pager.tip')?></td>
+</tr>
+<tr>
+	<td style="padding-left: 33px"><input type="text" id="pagerSize" value="<?= Zend_Registry::get('config')->pager->size?>" /></td>
+	<td><input type="button" onclick="setPagerSize()" value="<?= $this->translate('common.button.ok')?>" /></td>
+	<td><span id="msgPagerSize" class="message" /></td>
+</tr>
+<thead class="tophr">
+<tr>
+    <td colspan="3"><?= $this->translate('admin.global.upload.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="3"><?= $this->translate('admin.global.upload.tip')?></td>
+</tr>
+<tr>
+	<td style="padding-left: 33px"><input type="text" id="uploadSize" value="<?= Zend_Registry::get('config')->upload->size?>" /> KB</td>
+	<td><input type="button" onclick="setUploadSize()" value="<?= $this->translate('common.button.ok')?>" /></td>
+	<td><span id="msgUploadSize" class="message" /></td>
+</tr>
+</tbody>
+</table>
+<div class="content-bottom" />

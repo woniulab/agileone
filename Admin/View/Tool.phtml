@@ -1,0 +1,67 @@
+<script type="text/javascript">
+function clearCache(mode) {
+	url = "<?= Zend_Registry::get('baseUrl')?>/admin/tool/ccache";
+	param = "mode=" + mode;
+	$.post(url, param, function(data) {
+		if (data == "successful") {
+			$("#msgCache").text("<?= $this->translate('message.cache.clear.successful')?>");
+		}
+		else
+			$("#msgCache").text("<?= $this->translate('message.cache.clear.failed')?>");
+	});
+}
+
+function backup(mode) {
+	url = "<?= Zend_Registry::get('baseUrl')?>/admin/tool/backup";
+	param = "mode=" + mode;
+	$.post(url, param, function(data) {
+		output = "<?= $this->translate('admin.tool.backup.successful')?>:<br>";
+		output += data;
+		$("#msgBackupUrl").html(output);
+		$("#msgBackup").text("<?= $this->translate('message.database.backup.successful')?>");
+	});
+}
+</script>
+<br />
+<table class="table-admin" align="center">
+<thead class="bottomhr">
+<tr>
+    <td colspan="2"><?= $this->translate('admin.tool.cache.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="2"><?= $this->translate('admin.tool.cache.tip')?></td>
+</tr>
+<tr>
+	<td width="40%">
+    	<input type="button" onclick="clearCache('old')" value="<?= $this->translate('admin.tool.cache.expired')?>" />&nbsp;&nbsp;
+    	<input type="button" onclick="clearCache('all')" value="<?= $this->translate('admin.tool.cache.all')?>" />
+	</td>
+	<td width="60%"><span id="msgCache" class="message"></span></td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+    <td colspan="2"><?= $this->translate('admin.tool.backup.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="2"><?= $this->translate('admin.tool.backup.tip')?></td>
+</tr>
+<tr>
+	<td>
+    	<input type="button" onclick="backup('schema')" value="<?= $this->translate('admin.tool.backup.schema')?>" />&nbsp;&nbsp;
+    	<input type="button" onclick="backup('data')" value="<?= $this->translate('admin.tool.backup.data')?>" />
+	</td>
+	<td><span id="msgBackup" class="message"></span></td>
+</tr>
+<tr>
+	<td colspan="2">
+		<span id="msgBackupUrl"></span>
+	</td>
+</tr>
+</tbody>
+</table>
+<div class="content-bottom" />

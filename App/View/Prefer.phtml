@@ -1,0 +1,231 @@
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#myPermission").hide();
+	$("#showPermission").toggle(
+		function() {
+			$("#myPermission").show();
+		},
+		function() {
+			$("#myPermission").hide();
+		});
+	var module = new Array("dashboard", "notice", "minutes", "knowledge", "project", "task", "proposal", "userstory", "spec", "testcase", "execution", "defect");
+	lenModule = module.length;
+	var output = "";
+	for (i=0; i<lenModule; i++) {
+		output += "<tr>";
+		output += "<td>" + module[i] + "</td>";
+		for (j=1; j<5; j++)
+			output += "<td><input type='checkbox' class='checkbox' id=" + module[i] + "_" + j + " /></td>";
+		output += "</tr>";
+		$("#permissionPanel").html(output);
+	}
+
+	var url = "<?= Zend_Registry::get('baseUrl')?>/prefer/role";
+	var param = "rolename=" + "<?= $_SESSION['userRole']?>";
+	$.post(url, param, function (data) {
+		var json = eval(data);
+		for (var key in module) {
+	    	var permission = json[0][module[key]];
+	    	for (j=1; j<5; j++) {
+	        	if (permission.substring(j-1,j) == 1)
+	        		$("input[type=checkbox][id=" + module[key] + "_" + j + "]").attr("checked", true);
+	        	else
+	        		$("input[type=checkbox][id=" + module[key] + "_" + j + "]").attr("checked", false);
+	    	}
+		}
+	});
+	
+});
+
+function sendFeedback() {
+	if (isNull("feedbackFrom")) {
+		$("#msgFeedback").text("<?= $this->translate('message.feedback.email.null')?>");
+		return false;
+	}
+	if (isNull("feedback")) {
+		$("#msgFeedback").text("<?= $this->translate('message.feedback.feedback.null')?>");
+		return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/common/feedback";
+	var param = "feedback=" + $.trim($("#feedback").val()) +
+				"&feedbackFrom=" + $.trim($("#feedbackFrom").val());
+	$.post(url, param, function(data) {
+		if (data == "successful") {
+			$("#msgFeedback").text("<?= $this->translate('admin.index.feedback.thanks')?>");
+		}
+		else
+			$("#msgFeedback").text("<?= $this->translate('message.common.failed')?>");
+	});
+}
+
+function doChange() {
+	if (isNull("email")) {
+		$("#msgMyInfo").text("<?= $this->translate('message.user.email.null')?>");
+    	return false;
+	}
+	if (!isNull("password")) {
+		if ($("#password").val() != $("#password2").val()) {
+			$("#msgMyInfo").text("<?= $this->translate('message.user.password.mismatch')?>");
+			$("#password2").focus();
+			return false;
+		}
+		else {
+			$("#email").focus();
+			$("#msgMyInfo").text("");
+		}
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/prefer/edit";
+	var param = "defaultproject=" + $("#defaultProject").val() + 
+				"&projname=" + $("#defaultProject option[selected]").text() + 
+				"&email=" + $.trim($("#email").val()) + 
+				"&password=" + $.trim($("#password").val());
+
+	$.post(url, param, function(data) {
+		if (data == "1") {
+			$("#msgMyInfo").text("<?= $this->translate('message.common.successful')?>");
+		}
+		else
+			$("#msgMyInfo").text("<?= $this->translate('message.common.failed')?>");
+	});
+}
+</script>
+<br>
+<table class="table-admin" align="center">
+<thead class="bottomhr">
+<tr>
+    <td colspan="3"><?= $this->translate('core.prefer.profile.info')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td width="15%"><?= $this->translate('core.prefer.profile.role')?>:</td>
+	<td width="25%">
+	<?= $_SESSION['userRole']?>&nbsp;&nbsp;
+	<label id="showPermission" class="bold">[<?= $this->translate('common.page.detail')?>]</td></label>
+	<td width="60%"><?= $this->roledesc?></td>
+</tr>
+<tr>
+	<td></td>
+	<td colspan="2">
+	<div id="myPermission">
+		<table class="table-embedded">
+		<thead>
+		<tr>
+        	<th width="20%"><?= $this->translate('column.role.module')?></th>
+        	<th width="12%"><?= $this->translate('common.button.add')?></th>
+        	<th width="12%"><?= $this->translate('common.button.edit')?></th>
+        	<th width="12%"><?= $this->translate('common.button.delete')?></th>
+        	<th width="12%"><?= $this->translate('common.button.query')?></th>
+        	<th width="32%"></td>
+        </tr>
+        </thead>
+        <tbody id="permissionPanel"></tbody>
+		</table>
+	</div>
+	</td>
+</tr>
+<tr>
+	<td><?= $this->translate('core.prefer.profile.projects')?>:</td>
+	<td colspan="2">
+	<table class="table-embedded">
+	<thead>
+	<tr>
+    	<th><?= $this->translate('column.common.id')?></th>
+        <th><?= $this->translate('column.project.projname')?></th>
+        <th><?= $this->translate('column.project.startdate')?></th>
+    	<th><?= $this->translate('column.project.finishdate')?></th>
+    	<th><?= $this->translate('column.project.status')?></th>
+    </tr>
+    </thead>
+    <tbody>
+	<?php
+	    foreach ($this->myproject as $project) {
+	        echo '<tr>';
+	        echo '<td>' , $project['projectid'] , '</td>';
+	        echo '<td>' , $project['projname'] , '</td>';
+	        echo '<td>' , $project['startdate'] , '</td>';
+	        echo '<td>' , $project['finishdate'] , '</td>';
+	        echo '<td>' , $project['status'] , '</td>';
+	        echo '</tr>';
+	    }
+	?>
+	</tbody>
+	</table>
+	</td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+    <td colspan="3"><?= $this->translate('core.prefer.profile.edit')?>:</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="3">
+	<table class="table-embedded">
+	<tbody>
+	<tr>
+    	<td width="17%"><?= $this->translate('core.prefer.project.default')?>:</td>
+    	<td width="28%">
+    	<select id="defaultProject" class="short">
+    	<?php 
+    	    $myProject = $_SESSION['myProject'];
+    	    foreach ($myProject as $value) {
+    	        if ($_SESSION['defaultProjectId'] == $value['projectid'])
+    	            echo '<option value="' , $value['projectid'] , '" selected>' , $value['projname'], '</option>';
+    	        else
+    	            echo '<option value="' , $value['projectid'] , '">' , $value['projname'], '</option>';
+    	    }
+    	?>
+    	</select>
+    	</td>
+    	<td width="55%"></td>
+	</tr>
+	<tr>
+    	<td><?= $this->translate('core.perfer.email.change')?>:</td>
+    	<td><input type="text" id="email" maxlength="40" value="<?= $_SESSION['userEmail']?>" class="short" /></td>
+    	<td></td>
+	</tr>
+    <tr>
+    	<td><?= $this->translate('core.prefer.password.new')?>:</td>
+    	<td><input type="password" id="password" maxlength="20" class="short" /></td>
+    	<td>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tip"><?= $this->translate('tip.core.password.change')?></span></td>
+    </tr>
+    <tr>
+    	<td><?= $this->translate('core.prefer.password.confirm')?>:</td>
+    	<td><input type="password" id="password2" maxlength="20" class="short" /></td>
+    	<td></td>
+    </tr>
+    <tr>
+        <td><input type="button" onclick="doChange()" value="<?= $this->translate('common.button.ok')?>" /></td>
+        <td></td>
+        <td><span id="msgMyInfo" class="message" /></td>
+    </tr>
+    </tbody>
+    </table>
+    </td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+	<td colspan="3"><?= $this->translate('admin.index.feedback.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="3">
+	<?= $this->translate('admin.index.feedback.email')?>: &nbsp;&nbsp;
+	<input type="text" id="feedbackFrom" value="<?= $_SESSION['userEmail']?>" class="short" /></td>
+</tr>
+<tr>
+	<td colspan="2"><textarea rows="7" cols="45" id="feedback"></textarea></td>
+	<td><span class="tip"><?= $this->translate('admin.index.feedback.tip')?></span>
+	<p />
+	<input type="button" onclick="sendFeedback()" value="<?= $this->translate('common.button.ok')?>" />
+	&nbsp;&nbsp;&nbsp;&nbsp;<span id="msgFeedback" class="message"></span>
+	</td>
+</tr>
+
+</tbody>
+</table>
+<div class="content-bottom" />

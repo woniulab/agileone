@@ -1,0 +1,436 @@
+@CHARSET "UTF-8";
+/**
+ * AgileOne - Power to Agile Development
+ *
+ * @copyright  Copyright (c) 2009 AgileOne Team (http://code.google.com/p/agileone/)
+ * @license    GNU General Public License V3 (http://www.gnu.org/licenses)
+ * @version    2009-1-30 1.0
+ * @author     DengQiang (http://blog.sina.com.cn/dennyqiang)
+ */
+
+/* --------- Global Settings ------------*/
+/*
+html { filter:progid:DXImageTransform.Microsoft.BasicImage(grayscale=1); }
+*/
+
+td {
+	font-family: Verdana,"Lucida Grande",Arial,Sans-Serif,"宋体";
+	color: #333333;
+	font-size: 12px;
+}
+html, body {
+	margin: 0px;
+	padding: 0px;
+	height: 100%;
+	overflow-x: hidden;
+	min-width: 960px;
+}
+img {
+	border: none;
+	vertical-align: middle;
+}
+a:link, a:visited {
+	color: #0099CC;
+}
+a:hover, a:active {
+	color: #FF3300;
+}
+input {
+	border: solid 1px #888888;
+	background-image: url(../Image/inputbg.gif);
+	vertical-align: middle;
+}
+input.checkbox {
+	border: 0;
+	background-image: none;
+}
+input.radio {
+	border: 0;
+	background-image: none;
+}
+input.long {
+	width: 100%;
+}
+input.middle {
+	width: 300px;
+}
+input.short {
+	width: 220px;
+}
+input.standard {
+	width: 151px !important;
+	width: 153px;
+}
+input.pager {
+	width: 70px;
+}
+textarea.middle {
+	font-family: Arial,Verdana,"宋体";
+	font-size: 12px;
+	width: 300px;
+	height: 80px;
+}
+textarea.long {
+	font-family: Arial,Verdana,"宋体";
+	font-size: 12px;
+	width: 100%;
+	height: 120px;
+}
+hr {
+	border: dotted 1px #CCCCCC;
+	height: 1px;
+	margin: 0px;
+}
+select {
+	border: solid 1px #888888;
+	vertical-align: middle;
+	width: 220px !important;
+	width: 153px;
+	font-family: Arial,Verdana,"宋体";
+}
+select.short {
+	width: 220px;
+}
+select.long {
+	width: 80%
+}
+select.pager {
+	width: 70px;
+}
+label {
+	color: #0099CC;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/* Login Table */
+.table-login {
+	border: 0;
+	border-collapse: collapse;
+	width: 565px;
+	height: 295px;
+	background: #0098c7 url(../Image/loginbg.gif) 0 0 no-repeat;
+}
+.table-login thead td {
+	height: 100px;
+}
+.table-login td {
+	border: 0;
+	height: 30px;
+	vertical-align: middle;
+}
+.table-login-hr {
+	height: 10px;
+	border-bottom: dotted 1px #CCCCCC;
+	margin-bottom: 10px;
+}
+.table-login-msg {
+	padding-top: 10px;
+	margin-top: 5px;
+}
+.login-username {
+	border-top-width: 0px;
+	padding-left: 25px;
+	border-left-width: 0px;
+	background: url(../Image/usernamebg.gif) no-repeat;
+	border-bottom-width: 0px;
+	width: 165px;
+	line-height: 20px;
+	height: 21px;
+	border-right-width: 0px;
+}
+.login-password {
+	border-top-width: 0px;
+	padding-left: 25px;
+	border-left-width: 0px;
+	background: url(../Image/passwordbg.gif) no-repeat;
+	border-bottom-width: 0px;
+	width: 165px;
+	line-height: 20px;
+	height: 21px;
+	border-right-width: 0px;
+}
+.loginbt {
+	border: 0;
+	vertical-align: top;
+}
+.login-message {
+	text-align: center;
+	color: #0099CC;
+	vertical-align: middle;
+}
+
+/* Table for Admin */
+.table-admin {
+	border-collapse: collapse;
+	width: 96%;
+}
+.table-admin thead td {
+	font-weight: bold;
+	color: #0099CC;
+	height: 35px;
+}
+.table-admin.tophr td {
+	border-top: solid 4px #C4E0F3;
+	vertical-align: bottom;
+}
+.table-admin.bottomhr td {
+	border-bottom: solid 4px #C4E0F3;
+}
+.table-admin tbody td {
+	border-top: dotted 0px #C4E0F3;
+	border-bottom: dotted 1px #C4E0F3;
+	padding: 8px 15px 8px 15px;
+	line-height: 200%;
+}
+.table-admin tbody td ul {
+	margin: 0px 10px 0px -25px !important;
+	margin: 0px 10px 0px 15px;
+}
+
+/* Table Action Panel */
+.table-action {
+	border-collapse: collapse;
+	width: 100%;
+	font-size: 12px;
+	text-align: left;
+}
+.table-action thead td {
+	font-weight: bold;
+	background-color: #C4E0F3;
+	height: 28px;
+	padding: 3px 10px 3px 20px;
+	/* border: solid 1px #E6F2FB; */
+	border: solid 1px #B5DAF0;
+}
+.table-action tbody td {
+	border-bottom: dotted 1px #C4E0F3;
+	border-top: dotted 1px #C4E0F3;
+	height: 30px;
+	padding: 5px 15px 5px 30px;
+}
+.table-action tfoot td {
+	padding: 10px 15px 10px 30px;
+	border-bottom: dotted 1px #C4E0F3;
+}
+
+/* Table Data Panel*/
+.table-data {
+	border-collapse: collapse;
+	width: 100%;
+	word-break: break-all;
+	text-align: left;
+	font-size: 12px;
+}
+.table-data thead th {
+	font-weight: bold;
+	height: 28px;
+	border: solid 1px #B5DAF0;
+	padding: 3px 10px 3px 10px;
+	background-color: #C4E0F3;
+	/* For Table Sorter Use */
+	background-image: url(../Image/tsbg.gif);
+	background-repeat: no-repeat;
+	background-position: right;
+	cursor: pointer;
+	/************************/
+}
+
+/* For Table Sorter Use */
+.table-data thead tr .headerSortUp {
+	background-image: url(../Image/tsasc.gif);
+}
+.table-data thead tr .headerSortDown {
+	background-image: url(../Image/tsdesc.gif);
+}
+/************************/
+.table-data thead th.id {
+	padding-left: 20px;
+}
+.table-data td.projectdetails {
+	padding-left: 30px;
+}
+.table-data tbody td {
+	border-top: dotted 1px #C4E0F3;
+	height: 30px;
+	padding: 5px 10px 5px 10px;
+}
+.table-data tfoot td {
+	background-color: #C4E0F3;
+	height: 30px;
+	border: solid 1px #B5DAF0;
+	padding: 2px 15px 2px 20px;
+}
+
+/* Table for Emebedded */
+.table-embedded {
+	border-collapse: collapse;
+	width: 100%;
+	word-break: break-all;
+	text-align: left;
+	font-size: 12px;
+}
+.table-embedded thead th {
+	font-weight: bold;
+	height: 28px;
+	border: solid 1px #B5DAF0;
+	padding: 3px 10px 3px 10px;
+	background-color: #C4E0F3;
+}
+.table-embedded tbody td {
+	height: 30px;
+	padding: 2px 5px 2px 10px;
+	margin: 0px;
+}
+.table-embedded tfoot td {
+}
+
+.message {
+	text-align: center;
+	color: #FF3300;
+	background: transparent url(../Image/msgbg.gif) no-repeat;
+	padding-left: 22px;
+	vertical-align: middle;
+}
+.loading {
+	display: none;
+}
+.tip {
+	background: transparent url(../Image/tipbg.gif) no-repeat;
+	padding-left: 22px;
+	vertical-align: middle;
+}
+.bold {
+	font-weight: bold;
+}
+.required {
+	color: #FF3300;
+}
+
+/*--------------- Page Settings -------------------*/
+/* For Layout Table */
+.layout-table {
+	border-collapse: collapse;
+	width: 100%;
+	height: 100%;
+	padding: 0px;
+}
+
+/* For Header */
+.header {
+	background: #F2F9FD url(../Image/headerbg.gif) 0 0 repeat-x;
+}
+.header-logo {
+	height: 55px;
+	width: 165px;
+	padding: 0px 0px 2px 10px;
+}
+.header-menu {
+	text-align: right;
+	padding-right: 20px;
+	font-size: 14px;
+}
+
+/* For Left */
+.left {
+	background: #A3DAEC url(../Image/leftbg.gif) -76px 0px repeat-y;
+	vertical-align: top;
+	width: 165px;
+	padding: 0px;
+	margin: 0px;
+}
+.left-menu {
+	position: relative;
+	padding-top: 5px !important;
+	padding-top: 20px;
+	width: 98% !important;
+	width: 170px;
+	font-size: 14px;
+}
+.left-menu ul{
+	position: absolute; 
+	list-style: none;
+	right: 5px;
+	padding: 0px;
+	width: 100%;
+}
+.left-menu li{
+	height: 25px;
+	overflow: hidden;
+}
+.left-menu li a{ 
+	display: block;
+	height: 25px;
+	padding: 4px 0px 0px 40px;
+	background: transparent url(../Image/leftmenu.gif) 20px 8px no-repeat ;
+}
+.left-menu li a:hover{ 
+	background: #6bc4e0 url(../Image/leftmenu.gif) 20px 8px no-repeat;
+}
+.left-bottom {
+	position: absolute;
+	width: 150px;
+	margin: 0px 20px 10px 10px;
+	bottom: 0px;
+	padding-top: 8px;
+	border-top: dotted 1px #CCCCCC;
+	font-size: 11px;
+	overflow: hidden;
+}
+/* For Content */
+.content {
+	overflow-y: hidden !important;
+	overflow-y: scroll;
+	width: 100%;
+	height: 100%;
+	border-bottom: solid 0px #F2F9FD;
+	/*background: #FFFFFF url(../Image/mainbg.gif) repeat-x;*/
+	padding-top: 1px;
+}
+.content-top {
+	height: 25px !important;
+	height: 31px;
+	padding: 4px 20px 2px 20px;
+	background-color: #C4E0F3;
+	border: solid 1px #B5DAF0;
+	margin-right: 1px;
+	vertical-align: middle;
+}
+.content-top-proj {
+	width: 55%;
+	float: left;
+}
+.content-top-new {
+	width: 45%;
+	float: right;
+	text-align: right;
+}
+.content-main {
+	margin: 0px 1px 2px 0px;
+}
+.content-error {
+	margin-top: 50px;
+	text-align: center;
+}
+.content-bottom {
+	background: #FFFFFF url(../Image/mainfootbg.gif) repeat-x;
+	margin: 10px 0px 0px 0px;
+	padding: 0px;
+	height: 1px;
+}
+
+/*--------------- Specific Settings -------------------*/
+/* For some panel */
+.itemlist {
+	border: solid 1px #DEEFFA;
+	width: 100%;
+	margin: 10px 0px 10px 0px;
+	padding: 5px;
+	display: none;
+	line-height: 25px;
+}
+.kindeditor {
+	margin: 0px !important;
+	padding: 0px !important;
+	height: 0px;
+}

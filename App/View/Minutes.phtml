@@ -1,0 +1,252 @@
+<script type="text/javascript">
+/* Page init setting for User */
+KE.show({
+    id : 'resolution',
+    cssPath : '<?= Zend_Registry::get('baseDir')?>/Common/Layout/KindEditor.css'
+});
+var initUrl = "<?= Zend_Registry::get('baseUrl')?>/minutes/query";
+var initParam = "currentpage=1";
+var columnName = new Array("minutesid", "holdtime", "topic", "venue", "organizer");
+var operate = "edit,delete";
+var currentPage = "1";
+
+$(document).ready(function() {
+	fillData(initUrl, initParam, columnName, operate, currentPage);
+	markDisabled(Array("edit"));
+});
+
+/* Fill data to action panel for Edit */
+function goEdit(obj, isEdit) {
+	var dataRow = $(obj).parent().parent().children();
+	var param = "minutesid=" + dataRow.eq(0).text();
+	$.post(initUrl, param, function (data) {
+		var json = eval(data);
+    	var lenJson = json.length - 1;
+    	if (lenJson == 1) {
+        	$("#minutesid").val(json[0]['minutesid']);
+        	$("#topic").val(json[0]['topic']);
+        	$("#holdtime").val(json[0]['holdtime']);
+        	$("#venue").val(json[0]['venue']);
+        	$("#organizer").val(json[0]['organizer']);
+        	$("#attendee").val(json[0]['attendee']);
+        	setKEContent('resolution', json[0]['resolution']);
+    	}
+    	else {
+        	$("#msg").text("<?= $this->translate('message.common.nodata')?>");
+    	}
+	});
+	if (isEdit) {
+		markEnabled(Array("edit"));
+		markDisabled(Array("add", "minutesid"));
+	}
+	else {
+		markDisabled(Array("edit"));
+		markEnabled(Array("add", "minutesid"));
+	}
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	$("#actionPanel").show();
+	location.href = "#top";
+}
+
+/* Add new data */
+function doAdd() {
+    if (isNull("topic")) {
+    	$("#msg").text("<?= $this->translate('message.minutes.topic.null')?>");
+    	return false;
+    }
+    if (! isDateTime("holdtime")) {
+		$("#msg").text("<?= $this->translate('message.common.validate.datetime')?>");
+		return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/minutes/add";
+	var param = "topic=" + $.trim($("#topic").val()) + 
+			"&holdtime=" + $.trim($("#holdtime").val()) +
+			"&organizer=" + $.trim($("#organizer").val()) +  
+			"&venue=" + $.trim($("#venue").val()) + 
+			"&attendee=" + $.trim($("#attendee").val()) + 
+			"&resolution=" + replaceAmp(KE.util.getData('resolution'));
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillData(initUrl, initParam, columnName, operate, currentPage);
+    		$("#minutesid").val(data);
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+    });
+}
+
+/* Edit existing data */
+function doEdit() {
+	if (isNull("topic")) {
+    	$("#msg").text("<?= $this->translate('message.minutes.topic.null')?>");
+    	return false;
+    }
+    if (! isDateTime("holdtime")) {
+		$("#msg").text("<?= $this->translate('message.common.validate.datetime')?>");
+		return false;
+	}
+	var minutesid = $.trim($("#minutesid").val());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/minutes/edit";
+	var param = "minutesid=" + minutesid + 
+			"&topic=" + $.trim($("#topic").val()) + 
+        	"&holdtime=" + $.trim($("#holdtime").val()) + 
+        	"&organizer=" + $.trim($("#organizer").val()) + 
+        	"&venue=" + $.trim($("#venue").val()) + 
+        	"&attendee=" + $.trim($("#attendee").val()) + 
+        	"&resolution=" + replaceAmp(KE.util.getData('resolution'));
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.edit')?>");
+    		break;
+    	case "1":
+    		fillEdit(initUrl, "minutesid=" + minutesid, columnName, minutesid);
+    		$("#msg").text("<?= $this->translate('message.common.edit.successful')?>" + $("#minutesid").val());
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.edit.failed')?>" + $("#minutesid").val());
+    		break;
+        default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+/* Delete data according to ID */
+function doDelete(obj) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var dataRow = $(obj).parent().parent().children();
+	var minutesid = $.trim(dataRow.eq(0).text());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/minutes/delete";
+	var param = "minutesid=" + minutesid;
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.delete')?>");
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + minutesid);
+			dataRow.remove();
+			$("#totalRecord").text($("#totalRecord").text() - 1);
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + minutesid);
+    		break;
+    	default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+/* Search data */
+function doSearch(isSearch, currentPage) {
+	if (isSearch) {
+		$("#cacheDiv").removeData("cacheData");
+		var cacheArray = new Array();
+		cacheArray['minutesid'] = $.trim($("#minutesid").val());
+		cacheArray['topic'] = $.trim($("#topic").val());
+		cacheArray['holdtime'] = $.trim($("#holdtime").val());
+		cacheArray['organizer'] = $.trim($("#organizer").val());
+		cacheArray['venue'] = $.trim($("#venue").val());
+		cacheArray['attendee'] = $.trim($("#attendee").val());
+		cacheArray['resolution'] = replaceAmp($.trim(KE.util.getPureData('resolution')));
+		$("#cacheDiv").data("cacheData", cacheArray);
+	}
+	var cacheData = $("#cacheDiv").data("cacheData");
+	if (typeof(cacheData) == "undefined")
+		var param = "currentpage=" + currentPage;
+	else
+		var param = "currentpage=" + currentPage +
+				"&minutesid=" + cacheData['minutesid'] + 
+		    	"&topic=" + cacheData['topic'] + 
+		    	"&holdtime=" + cacheData['holdtime'] + 
+		    	"&organizer=" + cacheData['organizer'] +
+		    	"&venue=" + cacheData['venue'] +
+		    	"&attendee=" + cacheData['attendee'] +
+		    	"&resolution=" + cacheData['resolution'];
+	fillData(initUrl, param, columnName, operate, currentPage);
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+}
+
+/* Reset KE content */
+function resetKE() {
+	setKEContent("resolution", "");
+}
+</script>
+
+<br />
+<table class="table-action">
+<thead>
+<tr>
+	<a name="top"></a>
+	<td colspan="5">
+	    <?= $this->translate('common.page.panel')?>:&nbsp;&nbsp;
+	    <label id="hideShow" />
+	</td>
+</tr>
+</thead>
+<tbody id="actionPanel">
+<tr>
+	<td width="14%"><?= $this->translate('column.common.id')?>:</td>
+	<td width="36%"><input type="text" id="minutesid" class="short" title="<?= $this->translate('tip.common.forsearch')?>" /></td>
+	<td width="15%"><?= $this->translate('column.minutes.holdtime')?>:</td>
+	<td width="25%" align="right"><input type="text" id="holdtime" value="<?= date('Y-m-d')?> 09:00:00" class="short" onclick="calendar(this, true)" /></td>
+	<td width="10%"></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.minutes.organizer')?>:</td>
+	<td><input type="text" id="organizer" maxlength="30" class="short" /></td>
+	<td><?= $this->translate('column.minutes.venue')?>:</td>
+	<td align="right"><input type="text" id="venue" maxlength="30" class="short" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.minutes.topic')?>:</td>
+	<td colspan="3"><input type="text" id="topic" maxlength="250" class="long" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.minutes.attendee')?>:</td>
+	<td colspan="3"><input type="text" id="attendee" class="long" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.minutes.resolution')?>:</td>
+	<td colspan="3"><textarea id="resolution" class="long"></textarea></td>
+	<td></td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+	<td><?= $this->translate('common.page.operate')?>:</td>
+	<td><span id="actionButton" /></td>
+	<td colspan="3">
+		<span id="msg" class="message"><?= $this->translate('tip.common.action')?></span>
+		<span id="loading" class="loading"><img src="<?= Zend_Registry::get('baseDir')?>/Common/Image/loading.gif" /></span>
+	</td>
+</tr>
+</tfoot>
+</table>
+
+<br />
+<table class="table-data" id="dataTable">
+<thead>
+<tr>
+    <th width="8%" class="id"><?= $this->translate('column.common.id')?></th>
+    <th width="20%"><?= $this->translate('column.minutes.holdtime')?></th>
+    <th width="36%"><?= $this->translate('column.minutes.topic')?></th>
+    <th width="12%"><?= $this->translate('column.minutes.venue')?></th>
+    <th width="12%"><?= $this->translate('column.minutes.organizer')?></th>
+    <th width="12%"><?= $this->translate('column.common.operate')?></th>
+</tr>
+</thead>
+<tbody id="dataPanel"></tbody>
+<tfoot id="footer"></tfoot>
+</table>

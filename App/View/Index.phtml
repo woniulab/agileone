@@ -1,0 +1,103 @@
+<script type="text/javascript">
+function finishTask(taskid) {
+	var url = "<?= Zend_Registry::get('baseUrl')?>/task/status";
+	var param = "taskid=" + taskid +
+				"&status=finished";
+	$.post(url, param, function (data) {
+		location.href = "<?= Zend_Registry::get('baseUrl')?>";
+	});
+}
+</script>
+<br>
+<table class="table-admin" align="center">
+<thead class="bottomhr">
+<tr>
+    <td colspan="4"><?= $this->translate('common.agileone.welcome')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="4"><?= $this->translate('common.agile.manifesto')?></td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+    <td colspan="4"><?= $this->translate('core.index.project.mine')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="4">
+	<table class="table-embedded">
+	<tbody>
+	<?php
+	    foreach ($this->project as $myProject) {
+    	    if ($myProject['projectid'] == $_SESSION['currentProjectId']) {
+    	    	echo '<tr class="bold">';
+    			echo '<td width=20%>' , $this->translate('column.common.id') , ': ' , $myProject['projectid'] , '</td>';
+    	    }
+    		else {
+    			echo '<tr>';
+    			echo '<td width=20%>' , $this->translate('column.common.id') , ': ' , $myProject['projectid'] , '</td>';
+    		}
+    		echo '<td width=20%>' , $myProject['projname'] , '</td>';
+    		echo '<td width=20%>' , $myProject['status'] , '</td>';
+    		echo '<td width=40%>' , $myProject['startdate'] , ' ~ ' , $myProject['finishdate'] , '</td>';
+    	    echo '</tr>';
+	    }
+	 ?>
+	</tbody>
+	</table>
+</td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+    <td colspan="4"><?= $this->translate('core.index.task.mine')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="4">
+	<table class="table-embedded">
+	<tbody>
+	<?php
+	    foreach ($this->task as $task) {
+    		echo '<tr>';
+    		echo '<td width=20%>' , $this->translate('column.common.id') , ': ' , $task['taskid'] , '&nbsp;&nbsp;<label onclick="finishTask(' , $task['taskid'] , ')">[' , $this->translate('common.button.finish') , ']</label></td>';
+    		echo '<td width=20%>' , substr($task['createdtime'],0, 10) , '</td>';
+    		echo '<td width=20%>' , ucwords($task['refertype']) , ' [ID=' , $task['referid'] , ']</td>';
+    		echo '<td width=40%>' , $task['content'] , '</td>';
+    	    echo '</tr>';
+	    }
+	 ?>
+	</tbody>
+	</table>
+</td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+    <td colspan="4"><?= $this->translate('core.index.notice.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="4" style="border-bottom: 0">
+	<table class="table-embedded">
+	<tbody>
+	<?php
+	    foreach ($this->notice as $notice) {
+    	    echo '<tr>';
+    		echo '<td width=30% valign=top>' , $this->translate('column.common.id') , ': ' , $notice['noticeid'] , ' [', $notice['creator'], ']<br>' , $notice['headline'] , '</td>';
+    		echo '<td width=70% valign=top>' , $notice['content'] , '</td>';
+    	    echo '</tr>';
+	    }
+	 ?>
+	</tbody>
+	</table>
+	</td>
+</tr>
+</tbody>
+</table>
+<div class="content-bottom" />

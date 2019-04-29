@@ -1,0 +1,8 @@
+<div class="content-error">
+	<img src="<?= Zend_Registry::get('baseDir')?>/Common/Image/error.gif"><p>
+	<?php
+	echo '<span id="msg" class="message">' , $this->message , '</span><p />';
+	echo '<a href="' , $_SERVER['HTTP_REFERER'] , '">' , $this->translate('message.common.previous') , '</a>&nbsp;&nbsp';
+	echo '<a href="' , Zend_Registry::get('baseUrl') , '">' , $this->translate('message.common.homepage') , '</a>';
+	?>
+</div>

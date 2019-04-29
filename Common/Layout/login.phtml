@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>AgileOne - Welcome to Login</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="Keywords" content="AgileOne, Agile Development, Agile Software Management" />
+<link rel="stylesheet" type="text/css" href="<?= Zend_Registry::get('baseDir')?>/Common/Layout/Default.css" />
+<script language="JavaScript" type="text/javascript" src="<?= Zend_Registry::get('baseDir')?>/Library/JQuery/jquery.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+
+	$('#username').focus();
+	
+	$("#login").click(
+	function() {
+   		if ($("#username").val() == '')
+	    {
+		    $("#msg").text("<?= $this->translate('message.user.username.null')?>");
+		    $("#username").focus();
+			return false;
+	    }
+		var url = "<?= Zend_Registry::get('baseUrl')?>/common/login";
+		var param = "username=" + $("#username").val() + 
+    			"&password=" + $("#password").val() + 
+    			"&savelogin=" + $("#savelogin").attr("checked");
+	    $.post(url, param, function (data) {
+		    switch (data) {
+		    	case "successful":
+		    		location.href = "<?= Zend_Registry::get('baseUrl')?>";
+		    		break;
+		    	case "user_locked":
+		    		$("#msg").text("<?= $this->translate('message.user.status.locked')?>");
+		    		$("#username").focus();
+		    		break;
+		    	case "user_invalid":
+		    		$("#msg").text("<?= $this->translate('message.user.username.invalid')?>");
+		    		$("#username").focus();
+		    		break;
+		    	case "password_invalid":
+		    		$("#msg").text("<?= $this->translate('message.user.password.invalid')?>");
+		    		$("#password").focus();
+		    		break;
+		    	default:
+		    		$("#msg").text("<?= $this->translate('message.common.error')?>");
+		    		$("#username").focus();
+		    }
+	    });
+   	});
+});
+</script>
+</head>
+<body style="margin-top: 80px; background-color: #0098c7;">
+<table align="center" class="table-login">
+	<thead>
+	<tr>
+		<td colspan="3"></td>
+	</tr>
+	</thead>
+	<tr>
+		<td width="30%" align="right" valign="bottom">
+		    <?= $this->translate("common.page.username")?>:&nbsp;&nbsp;
+		</td>
+		<td width="40%" align="center" valign="bottom">
+			<input type="text" id="username" class="login-username" maxlength="20" value="<?= $_COOKIE['username']?>" tabindex="1" />
+		</td>
+		<td width="30%" rowspan="3" align="center" valign="top" style="padding-bottom: 20px">
+			<input class="loginbt" id="login" type=image src="<?= Zend_Registry::get('baseDir')?>/Common/Image/loginbt.gif" tabindex="4" />
+		</td>
+	</tr>
+	<tr>
+		<td align="right">
+		    <?= $this->translate("common.page.password")?>:&nbsp;&nbsp;
+		</td>
+		<td align="center">
+			<input type="password" id="password" class="login-password" maxlength="20" value="<?= $_COOKIE['password']?>" tabindex="2" />
+		</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td align="center" valign="top">
+		    <input type="checkbox" class="checkbox" id="savelogin" checked="checked" tabindex="3" />&nbsp;
+		    <?= $this->translate("common.page.savelogin")?>
+		</td>
+	</tr>
+	<tr>
+		<td colspan="3" align="center">
+    		<div class="table-login-msg">
+    			<span id="msg" class="login-message"></span>
+    		</div>
+		</td>
+	</tr>
+	<tr>
+		<td colspan="3" align="center" valign="middle">
+		    <?= $this->translate("common.page.copyright")?>&nbsp;&nbsp;
+    		<?= $this->translate("common.page.version") . ' ' . Zend_Registry::get('config')->agileone->version?>
+		</td>
+	</tr>
+</table>
+</body>
+</html>

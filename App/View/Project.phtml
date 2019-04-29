@@ -1,0 +1,762 @@
+<script type="text/javascript">
+/* Page init setting for User */
+KE.show({
+    id : 'overview',
+    cssPath : '<?= Zend_Registry::get('baseDir')?>/Common/Layout/KindEditor.css'
+});
+$(document).ready(function() {
+	$("#milestonePanel").show();
+	$("#memberPanel").hide();
+	$("#modulePanel").hide();
+	$("#platformPanel").hide();
+	$("#versionPanel").hide();
+	
+	fillProjectMilestone();
+	fillProjectMember();
+	fillProjectModule();
+	fillProjectPlatform();
+	fillProjectVersion();
+
+	$("#status").attr("selectedIndex", 1);
+
+	markDisabled(Array('msedit'));
+});
+
+/* Show/Hide project details */
+function ShowProjectDetails(type) {
+	switch (type) {
+	case "milestone":
+		$("#milestonePanel").show();
+		$("#memberPanel").hide();
+		$("#modulePanel").hide();
+		$("#platformPanel").hide();
+		$("#versionPanel").hide();
+		break;
+	case "member":
+		$("#milestonePanel").hide();
+		$("#memberPanel").show();
+		$("#modulePanel").hide();
+		$("#platformPanel").hide();
+		$("#versionPanel").hide();
+		break;
+	case "module":
+		$("#milestonePanel").hide();
+		$("#memberPanel").hide();
+		$("#modulePanel").show();
+		$("#platformPanel").hide();
+		$("#versionPanel").hide();
+		break;
+	case "platform":
+		$("#milestonePanel").hide();
+		$("#memberPanel").hide();
+		$("#modulePanel").hide();
+		$("#platformPanel").show();
+		$("#versionPanel").hide();
+		break;
+	case "version":
+		$("#milestonePanel").hide();
+		$("#memberPanel").hide();
+		$("#modulePanel").hide();
+		$("#platformPanel").hide();
+		$("#versionPanel").show();
+		break;
+	}
+}
+
+/* Edit existing data */
+function doEdit() {
+	url = "<?= Zend_Registry::get('baseUrl')?>/project/edit";
+	param = "projectid=" + $.trim($("#projectid").val()) + 
+			"&projname=" + $.trim($("#projname").val()) + 
+			"&startdate=" + $.trim($("#startdate").val()) + 
+        	"&finishdate=" + $.trim($("#finishdate").val()) + 
+        	"&status=" + $.trim($("#status").val()) +
+        	"&customerid=" + $.trim($("#customerid").val()) +
+        	"&overview=" + replaceAmp(KE.util.getData('overview'));
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.edit')?>");
+    		break;
+    	case "project_exist":
+    		$("#msg").text("<?= $this->translate('message.project.projname.exist')?>");
+    		$("#projname").focus();
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.edit.successful')?>" + $("#projectid").val());
+    		break;
+    	default:
+    		$("#msg").text("<?= $this->translate('message.common.edit.failed')?>" + $("#projectid").val());
+    	}
+	});
+}
+
+/* Fill data to milestone panel */
+function fillProjectMilestone() {
+	$.ajax({
+		url: "<?= Zend_Registry::get('baseUrl')?>/milestone/query",
+		data: "projectid=" + $.trim($("#projectid").val()),
+		success: function(data) {
+			var json = eval(data);
+	    	var lenJson = json.length;
+	    	var showData = "";
+	    	if (lenJson > 0) {
+	    		for (i = 0; i < lenJson; i++) {
+    		    	showData += "<tr>";
+    		    	showData += "<td class='projectdetails'>" + json[i]["milestoneid"] + "</td>";
+    		    	showData += "<td>" + json[i]["msname"] + "</td>";
+    		    	showData += "<td>" + json[i]["msusage"] + "</td>";
+    		    	showData += "<td><label onclick=\"$('#msname').val('" + json[i]["msname"] + "'); $('#msusage').val('" + json[i]["msusage"] + "'); $('#hideId').val('" + json[i]["milestoneid"] + "'); markEnabled(Array('msedit'));\"><?= $this->translate('common.button.edit')?></label>&nbsp;&nbsp;";
+    		    	showData += "<label onclick='projectMilestoneDelete(" + json[i]["milestoneid"] + ")'><?= $this->translate('common.button.delete')?></label></td>";
+    	    		showData += "</tr>";
+	    		}
+	    	}
+	    	else {
+		    	showData += "<tr><td colspan='4' align='center'><?= $this->translate('message.common.nodata')?></td></tr>";
+		    	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	    	}
+	    	$("#milestoneList").html(showData);
+		}
+	});
+}
+
+function projectMilestoneAdd() {
+	if (isNull("msname")) {
+		$("#msg").text("<?= $this->translate('message.milestone.msname.null')?>");
+    	return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/milestone/add";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&msname=" + $.trim($("#msname").val()) + 
+				"&msusage=" + $.trim($("#msusage").val());
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+    	case "milestone_exist":
+    		$("#msg").text("<?= $this->translate('message.milestone.msname.exist')?>");
+    		$("#msname").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillProjectMilestone();
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+	});
+}
+
+function projectMilestoneEdit() {
+	if (isNull("msname")) {
+		$("#msg").text("<?= $this->translate('message.milestone.msname.null')?>");
+    	return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/milestone/edit";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&milestoneid=" + $.trim($("#hideId").val()) + 
+				"&msname=" + $.trim($("#msname").val()) + 
+				"&msusage=" + $.trim($("#msusage").val());
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+    	case "milestone_exist":
+    		$("#msg").text("<?= $this->translate('message.milestone.msname.exist')?>");
+    		$("#msname").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.edit.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillProjectMilestone();
+    		$("#msg").text("<?= $this->translate('message.common.edit.successful')?>" + $("#hideId").val());
+    	}
+	});
+}
+
+function projectMilestoneDelete(milestoneid) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var url = "<?= Zend_Registry::get('baseUrl')?>/milestone/delete";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&milestoneid=" + milestoneid;
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.delete')?>");
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + milestoneid);
+    		fillProjectMilestone();
+    		break;
+    	default:
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + milestoneid);
+		}
+	});
+}
+
+/* Fill data to member panel */
+function fillProjectMember() {
+	$.ajax({
+		url: "<?= Zend_Registry::get('baseUrl')?>/member/query",
+		data: "projectid=" + $.trim($("#projectid").val()),
+		success: function(data) {
+			var json = eval(data);
+	    	var lenJson = json.length;
+	    	var showData = "";
+	    	if (lenJson > 0) {
+	    		for (i = 0; i < lenJson; i++) {
+    		    	showData += "<tr>";
+    		    	showData += "<td class='projectdetails'>" + json[i]["userid"] + "</td>";
+    		    	showData += "<td>" + json[i]["username"] + "</td>";
+    		    	showData += "<td>" + json[i]["rolename"] + "</td>";
+    		    	showData += "<td><label onclick='projectMemberDelete(" + json[i]["userid"] + ")'><?= $this->translate('common.button.delete')?></label></td>";
+    	    		showData += "</tr>";
+	    		}
+	    	}
+	    	else {
+		    	showData += "<tr><td colspan='4' align='center'><?= $this->translate('message.common.nodata')?></td></tr>";
+		    	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	    	}
+	    	$("#memberList").html(showData);
+		}
+	});
+}
+
+function projectMemberAdd() {
+	if (isNull("userid")) {
+		$("#msg").text("<?= $this->translate('message.user.username.null')?>");
+    	return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/member/add";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&userid=" + $.trim($("#userid").val());
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+		case "user_invalid":
+    		$("#msg").text("<?= $this->translate('message.user.username.invalid')?>");
+    		$("#username").focus();
+    		break;
+    	case "user_exist":
+    		$("#msg").text("<?= $this->translate('message.user.username.exist')?>");
+    		$("#username").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillProjectMember();
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + $("#projectid").val());
+    	}
+	});
+}
+
+function projectMemberDelete(userid) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var url = "<?= Zend_Registry::get('baseUrl')?>/member/delete";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&userid=" + userid;
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.delete')?>");
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + userid);
+    		fillProjectMember();
+    		break;
+    	default:
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + userid);
+		}
+	});
+}
+
+/* Fill data to module panel */
+function fillProjectModule() {
+	$.ajax({
+		url: "<?= Zend_Registry::get('baseUrl')?>/module/query",
+		data: "projectid=" + $.trim($("#projectid").val()),
+		success: function(data) {
+			var json = eval(data);
+	    	var lenJson = json.length;
+	    	var showData = "";
+	    	if (lenJson > 0) {
+	    		for (i = 0; i < lenJson; i++) {
+    		    	showData += "<tr>";
+    		    	showData += "<td class='projectdetails'>" + json[i]["moduleid"] + "</td>";
+    		    	showData += "<td>" + json[i]["modname"] + "</td>";
+    		    	showData += "<td>" + json[i]["modusage"] + "</td>";
+    		    	showData += "<td><label onclick='projectModuleDelete(" + json[i]["moduleid"] + ")'><?= $this->translate('common.button.delete')?></label></td>";
+    	    		showData += "</tr>";
+	    		}
+	    	}
+	    	else {
+		    	showData += "<tr><td colspan='4' align='center'><?= $this->translate('message.common.nodata')?></td></tr>";
+		    	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	    	}
+	    	$("#moduleList").html(showData);
+		}
+	});
+}
+
+function projectModuleAdd() {
+	if (isNull("modname")) {
+		$("#msg").text("<?= $this->translate('message.module.modname.null')?>");
+    	return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/module/add";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&modname=" + $.trim($("#modname").val()) +
+				"&modusage=" + $.trim($("#modusage").val());
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+    	case "module_exist":
+    		$("#msg").text("<?= $this->translate('message.module.modname.exist')?>");
+    		$("#modname").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillProjectModule();
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+	});
+}
+
+function projectModuleDelete(moduleid) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var url = "<?= Zend_Registry::get('baseUrl')?>/module/delete";
+	var param = "moduleid=" + moduleid;
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.delete')?>");
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + moduleid);
+    		fillProjectModule();
+    		break;
+    	default:
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + moduleid);
+		}
+	});
+}
+
+/* Fill data to platform panel */
+function fillProjectPlatform() {
+	$.ajax({
+		url: "<?= Zend_Registry::get('baseUrl')?>/platform/query",
+		data: "projectid=" + $.trim($("#projectid").val()),
+		success: function(data) {
+			var json = eval(data);
+	    	var lenJson = json.length;
+	    	var showData = "";
+	    	if (lenJson > 0) {
+	    		for (i = 0; i < lenJson; i++) {
+    		    	showData += "<tr>";
+    		    	showData += "<td class='projectdetails'>" + json[i]["platformid"] + "</td>";
+    		    	showData += "<td>" + json[i]["pfname"] + "</td>";
+    		    	showData += "<td>" + json[i]["pfusage"] + "</td>";
+    		    	showData += "<td><label onclick='projectPlatformDelete(" + json[i]["platformid"] + ")'><?= $this->translate('common.button.delete')?></label></td>";
+    	    		showData += "</tr>";
+	    		}
+	    	}
+	    	else {
+		    	showData += "<tr><td colspan='4' align='center'><?= $this->translate('message.common.nodata')?></td></tr>";
+		    	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	    	}
+	    	$("#platformList").html(showData);
+		}
+	});
+}
+
+function projectPlatformAdd() {
+	if (isNull("pfname")) {
+		$("#msg").text("<?= $this->translate('message.platform.pfname.null')?>");
+    	return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/platform/add";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&pfname=" + $.trim($("#pfname").val()) +
+				"&pfusage=" + $.trim($("#pfusage").val());
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+    	case "platform_exist":
+    		$("#msg").text("<?= $this->translate('message.platform.pfname.exist')?>");
+    		$("#platform").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillProjectPlatform();
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+	});
+}
+
+function projectPlatformDelete(platformid) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var url = "<?= Zend_Registry::get('baseUrl')?>/platform/delete";
+	var param = "platformid=" + platformid;
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.delete')?>");
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + platformid);
+    		fillProjectPlatform();
+    		break;
+    	default:
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + platformid);
+		}
+	});
+}
+
+/* Fill data to version panel */
+function fillProjectVersion() {
+	$.ajax({
+		url: "<?= Zend_Registry::get('baseUrl')?>/version/query",
+		data: "projectid=" + $.trim($("#projectid").val()),
+		success: function(data) {
+			var json = eval(data);
+	    	var lenJson = json.length;
+	    	var showData = "";
+	    	if (lenJson > 0) {
+	    		for (i = 0; i < lenJson; i++) {
+    		    	showData += "<tr>";
+    		    	showData += "<td class='projectdetails'>" + json[i]["versionid"] + "</td>";
+    		    	showData += "<td>" + json[i]["version"] + "</td>";
+    		    	showData += "<td>" + json[i]["build"] + "</td>";
+    		    	showData += "<td>" + json[i]["createdtime"] + "</td>";
+    		    	showData += "<td>" + json[i]["changelog"] + "</td>";
+    		    	showData += "<td><label onclick='projectVersionDelete(" + json[i]["versionid"] + ")'><?= $this->translate('common.button.delete')?></label></td>";
+    	    		showData += "</tr>";
+	    		}
+	    	}
+	    	else {
+		    	showData += "<tr><td colspan='6' align='center'><?= $this->translate('message.common.nodata')?></td></tr>";
+		    	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	    	}
+	    	$("#versionList").html(showData);
+		}
+	});
+}
+
+function projectVersionAdd() {
+	if (isNull("version")) {
+		$("#msg").text("<?= $this->translate('message.version.version.null')?>");
+    	return false;
+	}
+	if (isNull("build")) {
+		$("#msg").text("<?= $this->translate('message.version.build.null')?>");
+    	return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/version/add";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&version=" + $.trim($("#version").val()) +
+				"&build=" + $.trim($("#build").val())+
+				"&changelog=" + replaceAmp($.trim($("#changelog").val()));
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+    	case "version_exist":
+    		$("#msg").text("<?= $this->translate('message.version.version.exist')?>");
+    		$("#build").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillProjectVersion();
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+	});
+}
+
+function projectVersionDelete(versionid) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var url = "<?= Zend_Registry::get('baseUrl')?>/version/delete";
+	var param = "versionid=" + versionid;
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.delete')?>");
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + versionid);
+    		fillProjectVersion();
+    		break;
+    	default:
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + versionid);
+		}
+	});
+}
+</script>
+
+<br />
+<table class="table-action">
+<thead>
+<tr>
+	<a name="top"></a>
+	<td colspan="5">
+	    <?= $this->translate('tip.project.edit.project')?>:&nbsp;&nbsp;
+	    <label id="hideShow"></label>
+	</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td width="14%"><?= $this->translate('column.common.id')?>:</td>
+	<td width="36%"><input type="text" id="projectid" value="<?= $this->project['projectid']?>" readonly class="short" /></td>
+	<td width="15%"><?= $this->translate('column.project.projname')?>:</td>
+	<td width="25%" align="right"><input type="text" id="projname" maxlength="30" value="<?= $this->project['projname']?>" class="short" /></td>
+	<td width="10%"></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.project.startdate')?>:</td>
+	<td><input type="text" id="startdate" value="<?= $this->project['startdate']?>" class="short" onclick="calendar(this, false)" /></td>
+	<td><?= $this->translate('column.project.finishdate')?>:</td>
+	<td align="right"><input type="text" id="finishdate" value="<?= $this->project['finishdate']?>" class="short" onclick="calendar(this, false)" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.project.status')?>:</td>
+	<td><select id="status" class="short">
+		<option value=""></option>
+	    <?php
+	        $common = new Common();
+	        $projectStatus = $common->parseDefinition('project-status');
+		    foreach ($projectStatus as $ps) {
+		        if ($ps == $this->project['status'])
+                    echo '<option value="' , $ps , '" selected>' , $ps , '</option>';
+                else 
+                    echo '<option value="' , $ps , '">' , $ps , '</option>';
+		    }
+	    ?>
+	</select>
+	</td>
+	<td><?= $this->translate('column.project.customer')?>:</td>
+	<td align="right"><select id="customerid" class="short">
+		<option value=""></option>
+	    <?php
+		    foreach ($this->customer as $customer) {
+		        if ($customer['customerid'] == $this->project['customerid'])
+                    echo '<option value="' , $customer['customerid'] , '" selected>' , $customer['custname'] , '</option>';
+                else 
+                    echo '<option value="' , $customer['customerid'] , '">' , $customer['custname'] , '</option>';
+		    }
+	    ?>
+	</select>
+	</td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.project.overview')?>:</td>
+	<td colspan="3"><textarea id="overview" class="long"><?= $this->project['overview']?></textarea></td>
+	<td></td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+	<td><?= $this->translate('common.page.operate')?>:</td>
+	<td>
+		<input type="button" value="<?= $this->translate('common.button.edit')?>" onclick="doEdit()" />
+		<input type="hidden" id="hideId" value="" />
+	</td>
+	<td colspan="3">
+		<span id="msg" class="message"><?= $this->translate('tip.common.action')?></span>
+		<span id="loading" class="loading"><img src="<?= Zend_Registry::get('baseDir')?>/Common/Image/loading.gif" /></span>
+	</td>
+</tr>
+</tfoot>
+</table>
+
+<br />
+<table class="table-data">
+<thead>
+<tr>
+    <th class="id"><?= $this->translate('tip.project.edit.details')?>:&nbsp;&nbsp;
+    <label onclick="ShowProjectDetails('milestone')"><?= $this->translate('column.project.milestone')?></label>&nbsp;
+	<label onclick="ShowProjectDetails('member')"><?= $this->translate('column.project.member')?></label>&nbsp;
+	<label onclick="ShowProjectDetails('module')"><?= $this->translate('column.project.module')?></label>&nbsp;
+	<label onclick="ShowProjectDetails('platform')"><?= $this->translate('column.project.platform')?></label>&nbsp;
+	<label onclick="ShowProjectDetails('version')"><?= $this->translate('column.project.version')?></label>
+    </th>
+</tr>
+</thead>
+<tbody id="milestonePanel">
+<tr>
+<td style="padding: 10px 0px 10px 0px">
+	<table class="table-data">
+	<tr class="bold">
+		<td width="15%" class="projectdetails"><?= $this->translate('column.common.id')?></td>
+		<td width="30%"><?= $this->translate('column.milestone.msname')?></td>
+		<td width="42%"><?= $this->translate('column.common.usage')?></td>
+		<td width="13%"><?= $this->translate('column.common.operate')?></td>
+	</tr>
+	<tbody id="milestoneList"></tbody>
+	<tr>
+		<td class="projectdetails"><strong><?= $this->translate('tip.project.milestone.add')?>:</strong></td>
+	    <td>
+	    	<?= $this->translate('column.milestone.msname')?>:&nbsp;&nbsp;
+	    	<input type="text" id="msname" maxlength="30" />
+	    </td>
+	    <td>
+	    	<?= $this->translate('column.common.usage')?>:&nbsp;&nbsp;
+	    	<input type="text" id="msusage" class="short" />
+	    </td>
+	    <td>
+	    	<input type="button" onclick="projectMilestoneAdd()" value=<?= $this->translate('common.button.add')?> />&nbsp;
+	    	<input type="button" id="msedit" onclick="projectMilestoneEdit()" value=<?= $this->translate('common.button.edit')?> />
+	    </td>
+	</tr>
+	</table>
+</td>
+</tr>
+</tbody>
+
+<tbody id="memberPanel">
+<tr>
+<td style="padding: 10px 0px 10px 0px">
+	<table class="table-data">
+	<tr class="bold">
+		<td width="20%" class="projectdetails"><?= $this->translate('column.common.id')?></td>
+		<td width="35%"><?= $this->translate('column.user.username')?></td>
+		<td width="35%"><?= $this->translate('column.user.role')?></td>
+		<td width="10%"><?= $this->translate('column.common.operate')?></td>
+	</tr>
+	<tbody id="memberList"></tbody>
+	<tr>
+		<td class="projectdetails"><strong><?= $this->translate('tip.project.member.add')?>:</strong></td>
+		<td colspan="2">
+			<select id="userid" class="long">
+			<?php foreach ($this->user as $user)
+				echo '<option value="' , $user['userid'] , '">' , $user['username'] , '</option>';
+			?>
+			</select>
+		</td>
+		<td><input type="button" onclick="projectMemberAdd()" value=<?= $this->translate('common.button.add')?> /></td>
+	</tr>
+	</table>
+</td>
+</tr>
+</tbody>
+
+<tbody id="modulePanel">
+<tr>
+<td style="padding: 10px 0px 10px 0px">
+	<table class="table-data">
+	<tr class="bold">
+		<td width="18%" class="projectdetails"><?= $this->translate('column.common.id')?></td>
+		<td width="30%"><?= $this->translate('column.module.modname')?></td>
+		<td width="42%"><?= $this->translate('column.common.usage')?></td>
+		<td width="10%"><?= $this->translate('column.common.operate')?></td>
+	</tr>
+	<tbody id="moduleList"></tbody>
+	<tr>
+		<td class="projectdetails"><strong><?= $this->translate('tip.project.module.add')?>:</strong></td>
+	    <td>
+	    	<?= $this->translate('column.module.modname')?>:&nbsp;&nbsp;
+	    	<input type="text" id="modname" maxlength="30" />
+	    </td>
+	    <td>
+	    	<?= $this->translate('column.common.usage')?>:&nbsp;&nbsp;
+	    	<input type="text" id="modusage" class="short" />
+	    </td>
+	    <td><input type="button" onclick="projectModuleAdd()" value=<?= $this->translate('common.button.add')?> /></td>
+	</tr>
+	</table>
+</td>
+</tr>
+</tbody>
+
+<tbody id="platformPanel">
+<tr>
+<td style="padding: 10px 0px 10px 0px">
+	<table class="table-data">
+	<tr class="bold">
+		<td width="15%" class="projectdetails"><?= $this->translate('column.common.id')?></td>
+		<td width="37%"><?= $this->translate('column.platform.pfname')?></td>
+		<td width="38%"><?= $this->translate('column.common.usage')?></td>
+		<td width="10%"><?= $this->translate('column.common.operate')?></td>
+	</tr>
+	<tbody id="platformList"></tbody>
+	<tr>
+		<td class="projectdetails"><strong><?= $this->translate('tip.project.platform.add')?>:</strong</td>
+		<td>
+	    	<?= $this->translate('column.platform.pfname')?>:&nbsp;&nbsp;
+	    	<input type="text" id="pfname" maxlength="250" />
+	    </td>
+	    <td>
+	    	<?= $this->translate('column.common.usage')?>:&nbsp;&nbsp;
+	    	<input type="text" id="pfusage" class="short" />&nbsp;&nbsp;
+	    </td>
+	    <td><input type="button" onclick="projectPlatformAdd()" value=<?= $this->translate('common.button.add')?> /></td>
+	</tr>
+	</table>
+</td>
+</tr>
+</tbody>
+
+<tbody id="versionPanel">
+<tr>
+<td style="padding: 10px 0px 10px 0px">
+	<table class="table-data">
+	<tr class="bold">
+		<td width="10%" class="projectdetails"><?= $this->translate('column.common.id')?></td>
+		<td width="10%"><?= $this->translate('column.version.version')?></td>
+		<td width="12%"><?= $this->translate('column.version.build')?></td>
+		<td width="20%"><?= $this->translate('column.common.createdtime')?></td>
+		<td width="38%"><?= $this->translate('column.version.changelog')?></td>
+		<td width="10%"><?= $this->translate('column.common.operate')?></td>
+	</tr>
+	<tbody id="versionList"></tbody>
+	<tr>
+		<td colspan="2" class="projectdetails"><strong><?= $this->translate('tip.project.version.add')?>:</strong></td>
+	    <td colspan="2">
+	    	<?= $this->translate('column.version.version')?>:&nbsp;&nbsp;
+	    	<input type="text" id="version" maxlength="10" />
+	    </td>
+	    <td>
+	    	<?= $this->translate('column.version.build')?>:&nbsp;&nbsp;
+	    	<input type="text" id="build" maxlength="20" />
+	    </td>
+	    <td><input type="button" onclick="projectVersionAdd()" value=<?= $this->translate('common.button.add')?> /></td>
+	</tr>
+	<tr>
+		<td colspan="2" align="right"><?= $this->translate('column.version.changelog')?>:</td>
+	    <td colspan="4"><textarea id="changelog" style="width:80%; height: 80px;"></textarea>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+	</tr>
+	</table>
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+	<td align="right">
+		<a href="#top"><strong><?= $this->translate('common.page.top')?></strong></a>
+	</td>
+</tr>
+</tfoot>
+</table>

@@ -1,0 +1,7 @@
+#include<stdio.h>
+int main(void)
+{
+int i=1,sum=0,grade,avg;             
+     printf("请输入第%d个成绩: ",i);                            
+ return 0;
+}

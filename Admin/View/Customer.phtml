@@ -1,0 +1,245 @@
+<script type="text/javascript">
+/* Page init setting for User */
+KE.show({
+    id : 'intro',
+    cssPath : '<?= Zend_Registry::get('baseDir')?>/Common/Layout/KindEditor.css'
+});
+var initUrl = "<?= Zend_Registry::get('baseUrl')?>/admin/customer/query";
+var initParam = "currentpage=1";
+var columnName = new Array("customerid", "custname", "contact", "email", "phone");
+var operate = "edit,delete";
+var currentPage = "1";
+
+$(document).ready(function() {
+	fillData(initUrl, initParam, columnName, operate, currentPage);
+	markDisabled(Array("edit"));
+});
+
+/* Fill data to action panel for Edit */
+function goEdit(obj, isEdit) {
+	var dataRow = $(obj).parent().parent().children();
+	var param = "customerid=" + dataRow.eq(0).text();
+	$.post(initUrl, param, function (data) {
+		var json = eval(data);
+    	var lenJson = json.length - 1;
+    	if (lenJson == 1) {
+        	$("#customerid").val(json[0]['customerid']);
+        	$("#custname").val(json[0]['custname']);
+        	$("#contact").val(json[0]['contact']);
+        	$("#email").val(json[0]['email']);
+        	$("#phone").val(json[0]['phone']);
+        	$("#website").val(json[0]['website']);
+        	$("#address").val(json[0]['address']);
+        	setKEContent('intro', json[0]['intro']);
+    	}
+    	else {
+        	$("#msg").text("<?= $this->translate('message.common.nodata')?>");
+    	}
+	});
+	if (isEdit) {
+		markEnabled(Array("edit"));
+		markDisabled(Array("add", "customerid"));
+	}
+	else {
+		markDisabled(Array("edit"));
+		markEnabled(Array("add", "customerid"));
+	}
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	$("#actionPanel").show();
+	location.href = "#top";
+}
+
+/* Add new data */
+function doAdd() {
+    if (isNull("custname")) {
+    	$("#msg").text("<?= $this->translate('message.customer.custname.null')?>");
+    	return false;
+    }
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/customer/add";
+	var param = "custname=" + $.trim($("#custname").val()) + 
+			"&contact=" + $.trim($("#contact").val()) + 
+			"&email=" + $.trim($("#email").val()) +
+			"&phone=" + $.trim($("#phone").val()) +
+			"&website=" + $.trim($("#website").val()) +
+			"&address=" + $.trim($("#address").val()) +
+			"&intro=" + replaceAmp(KE.util.getData('intro'));
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "customer_exist":
+    		$("#msg").text("<?= $this->translate('message.customer.custname.exist')?>");
+    		$("#custname").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillData(initUrl, initParam, columnName, operate, currentPage);
+			$("#customerid").val(data);
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+    });
+}
+
+/* Edit existing data */
+function doEdit() {
+	if (isNull("custname")) {
+	    $("#msg").text("<?= $this->translate('message.customer.custname.null')?>");
+		return false;
+    }
+	var customerid = $.trim($("#customerid").val());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/customer/edit";
+	var param = "customerid=" + $.trim($("#customerid").val()) + 
+			"&custname=" + $.trim($("#custname").val()) + 
+        	"&contact=" + $.trim($("#contact").val()) + 
+        	"&email=" + $.trim($("#email").val()) +
+        	"&phone=" + $.trim($("#phone").val()) +
+        	"&website=" + $.trim($("#website").val()) +
+        	"&address=" + $.trim($("#address").val()) +
+        	"&intro=" + replaceAmp(KE.util.getData('intro'));
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "customer_exist":
+    		$("#msg").text("<?= $this->translate('message.customer.custname.exist')?>");
+    		$("#custname").focus();
+    		break;
+    	case "1":
+    		fillEdit(initUrl, "customerid=" + customerid, columnName, customerid);
+    		$("#msg").text("<?= $this->translate('message.common.edit.successful')?>" + $("#customerid").val());
+    		break;
+    	default:
+    		$("#msg").text("<?= $this->translate('message.common.edit.failed')?>" + $("#customerid").val());
+    	}
+	});
+}
+
+/* Delete data according to ID */
+function doDelete(obj) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var dataRow = $(obj).parent().parent().children();
+	var customerid = $.trim(dataRow.eq(0).text());
+	url = "<?= Zend_Registry::get('baseUrl')?>/admin/customer/delete";
+	param = "customerid=" + customerid;
+	$.post(url, param, function(data) {
+		switch (data) {
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + customerid);
+			dataRow.remove();
+			$("#totalRecord").text($("#totalRecord").text() - 1);
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + customerid);
+    		break;
+    	default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+/* Search data */
+function doSearch(isSearch, currentPage) {
+	if (isSearch) {
+		$("#cacheDiv").removeData("cacheData");
+		var cacheArray = new Array();
+		cacheArray['customerid'] = $.trim($("#customerid").val());
+		cacheArray['custname'] = $.trim($("#custname").val());
+		cacheArray['contact'] = $.trim($("#contact").val());
+		cacheArray['email'] = $.trim($("#email").val());
+		cacheArray['phone'] = $.trim($("#phone").val());
+		cacheArray['website'] = $.trim($("#website").val());
+		cacheArray['address'] = $.trim($("#address").val());
+		cacheArray['intro'] = replaceAmp($.trim(KE.util.getPureData('intro')));
+		$("#cacheDiv").data("cacheData", cacheArray);
+	}
+	var cacheData = $("#cacheDiv").data("cacheData");
+	if (typeof(cacheData) == "undefined")
+		var param = "currentpage=" + currentPage;
+	else
+		var param = "currentpage=" + currentPage +
+				"&customerid=" + cacheData['customerid'] + 
+		    	"&custname=" + cacheData['custname'] + 
+		    	"&contact=" + cacheData['contact'] + 
+		    	"&email=" + cacheData['email'] +
+		    	"&phone=" + cacheData['phone'] +
+		    	"&website=" + cacheData['website'] + 
+		    	"&address=" + cacheData['address'] +
+		    	"&intro=" + cacheData['intro'];
+	fillData(initUrl, param, columnName, operate, currentPage);
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+}
+
+/* Reset KE content */
+function resetKE() {
+	setKEContent("intro", "");
+}
+</script>
+<table class="table-action">
+<thead>
+<tr>
+	<a name="top"></a>
+	<td colspan="5">
+	    <?= $this->translate('common.page.panel')?>:&nbsp;&nbsp;
+	    <label id="hideShow" />
+	</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td width="14%"><?= $this->translate('column.common.id')?>:</td>
+	<td width="16%"><input type="text" id="customerid" class="short" title="<?= $this->translate('tip.common.forsearch')?>" /></td>
+	<td width="15%"><?= $this->translate('column.customer.custname')?>:</td>
+	<td width="25%" align="right"><input type="text" id="custname" maxlength="30" class="short" /></td>
+	<td width="10%"></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.customer.contact')?>:</td>
+	<td><input type="text" id="contact" maxlength="30" class="short" /></td>
+	<td><?= $this->translate('column.customer.email')?>:</td>
+	<td align="right"><input type="text" id="email" maxlength="40"  class="short"/></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.customer.phone')?>:</td>
+	<td><input type="text" id="phone" maxlength="30" class="short" /></td>
+	<td><?= $this->translate('column.customer.website')?>:</td>
+	<td align="right"><input type="text" id="website" maxlength="250" class="short" value="http://" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.customer.address')?>:</td>
+	<td colspan="3"><input type="text" id="address" maxlength="250" class="long" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.customer.intro')?>:</td>
+	<td colspan="3"><textarea id="intro"></textarea></td>
+	<td></td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+	<td><?= $this->translate('common.page.operate')?>:</td>
+	<td><span id="actionButton" /></td>
+	<td colspan="3">
+		<span id="msg" class="message"><?= $this->translate('tip.common.action')?></span>
+		<span id="loading" class="loading"><img src="<?= Zend_Registry::get('baseDir')?>/Common/Image/loading.gif" /></span>
+	</td>
+</tr>
+</tfoot>
+</table>
+
+<br />
+<table class="table-data" id="dataTable">
+<thead>
+<tr>
+    <th><?= $this->translate('column.common.id')?></th>
+    <th><?= $this->translate('column.customer.custname')?></th>
+    <th><?= $this->translate('column.customer.contact')?></th>
+    <th><?= $this->translate('column.customer.email')?></th>
+    <th><?= $this->translate('column.customer.phone')?></th>
+    <th><?= $this->translate('column.common.operate')?></th>
+</tr>
+</thead>
+<tbody id="dataPanel"></tbody>
+<tfoot id="footer"></tfoot>
+</table>

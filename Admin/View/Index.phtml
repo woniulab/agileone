@@ -1,0 +1,124 @@
+<script type="text/javascript">
+function sendFeedback() {
+	if (isNull("feedbackFrom")) {
+		$("#msgFeedback").text("<?= $this->translate('message.feedback.email.null')?>");
+		return false;
+	}
+	if (isNull("feedback")) {
+		$("#msgFeedback").text("<?= $this->translate('message.feedback.feedback.null')?>");
+		return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/common/feedback";
+	var param = "feedback=" + replaceAmp($.trim($("#feedback").val())) +
+				"&feedbackFrom=" + $.trim($("#feedbackFrom").val());
+	$.post(url, param, function(data) {
+		if (data == "successful") {
+			$("#msgFeedback").text("<?= $this->translate('admin.index.feedback.thanks')?>");
+		}
+		else
+			$("#msgFeedback").text("<?= $this->translate('message.common.failed')?>");
+	});
+}
+</script>
+<br />
+<table class="table-admin" align="center">
+<thead class="bottomhr">
+<tr>
+    <td colspan="2"><?= $this->translate('admin.index.welcome.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="2"><?= $this->translate('admin.index.welcome.intro')?></td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+    <td colspan="2"><?= $this->translate('admin.index.tip.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="2">
+	<ul>
+	    <?php
+	    $db = Zend_Db_Table::getDefaultAdapter();
+	    $sql = "select password from user where username='admin'";
+	    $result = $db->fetchAll($sql);
+	    $password = $result[0]['password'];
+	    if (md5('admin') == $password)
+	        echo $this->translate('admin.index.tip.password');
+	        
+		echo $this->translate('admin.index.tip.backup');
+		
+//		$http = new Zend_Http_Client('http://www.google.com');
+//		$version = $http->request()->getBody();
+//		if ($version != Common::version())
+//		    echo $this->translate('admin.index.tip.version');
+		?>
+		<span id="versionCheck"></span>
+	</ul>
+	</td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+	<td colspan="2"><?= $this->translate('admin.index.feedback.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="2">
+	<?= $this->translate('admin.index.feedback.email')?>: &nbsp;&nbsp;
+	<input type="text" id="feedbackFrom" value="<?= Zend_Registry::get('config')->mail->sender?>" class="short" /></td>
+</tr>
+<tr>
+	<td width="45%"><textarea id="feedback" rows="7" cols="45"></textarea></td>
+	<td width="55%"><?= $this->translate('admin.index.feedback.tip')?><p />
+		<input type="button" onclick="sendFeedback()" value="<?= $this->translate('common.button.ok')?>" />
+		&nbsp;&nbsp;&nbsp;&nbsp;<span id="msgFeedback" class="message"></span>
+	</td>
+</tr>
+</tbody>
+<thead class="tophr">
+<tr>
+	<td colspan="2"><?= $this->translate('admin.index.sysinfo.title')?></td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td colspan="2">
+	<table class="table-embedded">
+	<tbody>
+	<tr>
+		<td width="150"><?= $this->translate('admin.index.sysinfo.version')?>:</td>
+		<td><?= Zend_Registry::get('config')->agileone->version?></td>
+	</tr>
+	<tr>
+		<td><?= $this->translate('admin.index.sysinfo.os')?>:</td>
+		<td><?= $_ENV['OS']?></td>
+	</tr>
+	<tr>
+		<td><?= $this->translate('admin.index.sysinfo.server')?>:</td>
+		<td><?= $_SERVER['SERVER_SOFTWARE']?></td>
+	</tr>
+	<tr>
+		<td><?= $this->translate('admin.index.sysinfo.db')?>:</td>
+		<td><?= Zend_Db_Table::getDefaultAdapter()->getServerVersion()?></td>
+	</tr>
+	<tr>
+		<td><?= $this->translate('admin.index.sysinfo.upload')?>:</td>
+		<td><?= ini_get('post_max_size')?></td>
+	</tr>
+	<tr>
+		<td><?= $this->translate('admin.index.sysinfo.dbsize')?>:</td>
+		<td><?= $this->dbSize?>
+		</td>
+	</tr>
+	</tbody>
+	</table>
+	</td>
+</tr>
+</tbody>
+</table>
+<div class="content-bottom" />

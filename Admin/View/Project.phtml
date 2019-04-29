@@ -1,0 +1,389 @@
+<script type="text/javascript">
+/* Page init setting for User */
+KE.show({
+    id : 'overview',
+    cssPath : '<?= Zend_Registry::get('baseDir')?>/Common/Layout/KindEditor.css'
+});
+var initUrl = "<?= Zend_Registry::get('baseUrl')?>/admin/project/query";
+var initParam = "currentpage=1";
+var columnName = new Array("projectid", "projname", "startdate", "finishdate", "status", "customer");
+var operate = "edit,delete";
+var currentPage = "1";
+
+$(document).ready(function() {
+	fillData(initUrl, initParam, columnName, operate, currentPage);
+	markDisabled(Array("edit", "member"));
+	$("#memberPanel").hide();
+
+	$("#member").toggle(
+    	function() {
+       		$("#memberPanel").show();
+       		fillProjectMember();
+    	},
+    	function() {
+    		$("#memberPanel").hide();
+    	});
+});
+
+/* Fill data to action panel for Edit */
+function goEdit(obj, isEdit) {
+	var dataRow = $(obj).parent().parent().children();
+	var param = "projectid=" + dataRow.eq(0).text();
+	$.post(initUrl, param, function (data) {
+		var json = eval(data);
+    	var lenJson = json.length - 1;
+    	if (lenJson == 1) {
+        	$("#projectid").val(json[0]['projectid']);
+        	$("#projname").val(json[0]['projname']);
+        	$("#startdate").val(json[0]['startdate']);
+        	$("#finishdate").val(json[0]['finishdate']);
+        	$("#status").val(json[0]['status']);
+        	$("#customerid").val(json[0]['customerid']);
+        	setKEContent('overview', json[0]['overview']);
+        	fillProjectMember();
+        	markEnabled(Array("member"));
+    	}
+    	else {
+        	$("#msg").text("<?= $this->translate('message.common.nodata')?>");
+    	}
+	});
+	if (isEdit) {
+		markEnabled(Array("edit"));
+		markDisabled(Array("add", "projectid"));
+	}
+	else {
+		markEnabled(Array("add", "projectid"));
+		markDisabled(Array("edit"));
+	}
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	$("#actionPanel").show();
+	$("#memberPanel").hide();
+	location.href = "#top";
+}
+
+/* Add new data */
+function doAdd() {
+    if (isNull("projname")) {
+    	$("#msg").text("<?= $this->translate('message.project.projname.null')?>");
+    	return false;
+    }
+    if (! isDate("startdate")) {
+		$("#msg").text("<?= $this->translate('message.common.validate.datetime')?>");
+		return false;
+	}
+    if (! isDate("finishdate")) {
+		$("#msg").text("<?= $this->translate('message.common.validate.datetime')?>");
+		return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/project/add";
+	var param = "projname=" + $.trim($("#projname").val()) + 
+			"&startdate=" + $.trim($("#startdate").val()) + 
+			"&finishdate=" + $.trim($("#finishdate").val()) +
+			"&status=" + $.trim($("#status").val()) +
+			"&customerid=" + $.trim($("#customerid").val()) +
+			"&overview=" + replaceAmp(KE.util.getData('overview'));
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "project_exist":
+    		$("#msg").text("<?= $this->translate('message.project.projname.exist')?>");
+    		$("#projname").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillData(initUrl, initParam, columnName, operate, currentPage);
+    		$("#projectid").val(data);
+    		markEnabled(Array("member"));
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+    });
+}
+
+/* Edit existing data */
+function doEdit() {
+	if (isNull("projname")) {
+	    $("#msg").text("<?= $this->translate('message.project.projname.null')?>");
+		return false;
+    }
+	if (! isDate("startdate")) {
+		$("#msg").text("<?= $this->translate('message.common.validate.datetime')?>");
+		return false;
+	}
+    if (! isDate("finishdate")) {
+		$("#msg").text("<?= $this->translate('message.common.validate.datetime')?>");
+		return false;
+	}
+    var projectid = $.trim($("#projectid").val());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/project/edit";
+	var param = "&projectid=" + projectid + 
+			"&projname=" + $.trim($("#projname").val()) + 
+			"&startdate=" + $.trim($("#startdate").val()) + 
+        	"&finishdate=" + $.trim($("#finishdate").val()) + 
+        	"&status=" + $.trim($("#status").val()) +
+        	"&customerid=" + $.trim($("#customerid").val()) +
+        	"&overview=" + replaceAmp(KE.util.getData('overview'));
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "project_exist":
+    		$("#msg").text("<?= $this->translate('message.project.projname.exist')?>");
+    		$("#projname").focus();
+    		break;
+    	case "1":
+    		fillEdit(initUrl, "projectid=" + projectid, columnName, projectid);
+    		$("#msg").text("<?= $this->translate('message.common.edit.successful')?>" + $("#projectid").val());
+    		break;
+    	default:
+    		$("#msg").text("<?= $this->translate('message.common.edit.failed')?>" + $("#projectid").val());
+    	}
+	});
+}
+
+/* Delete data according to ID */
+function doDelete(obj) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var dataRow = $(obj).parent().parent().children();
+	var projectid = $.trim(dataRow.eq(0).text());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/project/delete";
+	var param = "projectid=" + projectid;
+	$.post(url, param, function(data) {
+		switch (data) {
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + projectid);
+			dataRow.remove();
+			$("#totalRecord").text($("#totalRecord").text() - 1);
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + projectid);
+    		break;
+    	default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+/* Search data */
+function doSearch(isSearch, currentPage) {
+	if (isSearch) {
+		$("#cacheDiv").removeData("cacheData");
+		var cacheArray = new Array();
+		cacheArray['projectid'] = $.trim($("#projectid").val());
+		cacheArray['projname'] = $.trim($("#projname").val());
+		cacheArray['startdate'] = $.trim($("#startdate").val());
+		cacheArray['finishdate'] = $.trim($("#finishdate").val());
+		cacheArray['status'] = $.trim($("#status").val());
+		cacheArray['customerid'] = $.trim($("#customerid").val());
+		cacheArray['overview'] = replaceAmp($.trim(KE.util.getPureData('overview')));
+		$("#cacheDiv").data("cacheData", cacheArray);
+	}
+	var cacheData = $("#cacheDiv").data("cacheData");
+	if (typeof(cacheData) == "undefined")
+		var param = "currentpage=" + currentPage;
+	else
+		var param = "currentpage=" + currentPage +
+				"&projectid=" + cacheData['projectid'] + 
+		    	"&projname=" + cacheData['projname'] + 
+		    	"&startdate=" + cacheData['startdate'] + 
+		    	"&finishdate=" + cacheData['finishdate'] +
+		    	"&status=" + cacheData['status'] +
+		    	"&customerid=" + cacheData['customerid'];
+				"&overview=" + cacheData['overview'];
+	fillData(initUrl, param, columnName, operate, currentPage);
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+}
+
+/* Fill data to member panel */
+function fillProjectMember() {
+	$("#member").val("");
+	var url = "<?= Zend_Registry::get('baseUrl')?>/member/query";
+	var param = "projectid=" + $.trim($("#projectid").val());
+	$.post(url, param, function (data) {
+		var json = eval(data);
+    	var lenJson = json.length;
+    	var showData = "";
+    	if (lenJson > 0) {
+    		for (i = 0; i < lenJson; i++) {
+   		    	showData += "<tr>";
+   		    	showData += "<td>" + json[i]["userid"] + "</td>";
+   		    	showData += "<td>" + json[i]["username"] + "</td>";
+   		    	showData += "<td>" + json[i]["rolename"] + "</td>";
+   		    	showData += "<td><label onclick='projectMemberDelete(" + json[i]["userid"] + ")'><?= $this->translate('common.button.delete')?></label></td>";
+   	    		showData += "</tr>";
+   	    		$("#member").val($("#member").val() + json[i]["username"] + ",");
+    		}
+    		lastIndex = $("#member").val().lastIndexOf(",");
+    		$("#member").val($("#member").val().substr(0, lastIndex));
+    	}
+    	else {
+	    	showData += "<tr><td><?= $this->translate('message.common.nodata')?></td></tr>";
+	    	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+    	}
+    	$("#memberList").html(showData);
+		});
+}
+
+function projectMemberAdd() {
+	if (isNull("userid")) {
+		$("#msg").text("<?= $this->translate('message.user.username.null')?>");
+    	return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/member/add";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&userid=" + $.trim($("#userid").val());
+	$.post(url, param, function(data) {
+		switch (data) {
+    	case "user_exist":
+    		$("#msg").text("<?= $this->translate('message.user.username.exist')?>");
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillProjectMember();
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + $("#projectid").val());
+    	}
+	});
+}
+
+function projectMemberDelete(userid) {
+	var url = "<?= Zend_Registry::get('baseUrl')?>/member/delete";
+	var param = "projectid=" + $.trim($("#projectid").val()) + 
+				"&userid=" + userid;
+	$.post(url, param, function(data) {
+		switch (data) {
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + userid);
+    		fillProjectMember();
+    		break;
+    	default:
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + userid);
+		}
+	});
+}
+
+/* Reset KE content */
+function resetKE() {
+	setKEContent("overview", "");
+	markDisabled(Array("member"));
+	$("#member").val("<?= $this->translate('tip.project.member.operate')?>");
+}
+</script>
+<table class="table-action">
+<thead>
+<tr>
+	<a name="top"></a>
+	<td colspan="5">
+	    <?= $this->translate('common.page.panel')?>:&nbsp;&nbsp;
+	    <label id="hideShow"></label>
+	</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+	<td width="14%"><?= $this->translate('column.common.id')?>:</td>
+	<td width="36%"><input type="text" id="projectid" class="short" title="<?= $this->translate('tip.common.forsearch')?>" /></td>
+	<td width="15%"><?= $this->translate('column.project.projname')?>:</td>
+	<td width="25%" align="right"><input type="text" id="projname" maxlength="30" class="short" /></td>
+	<td width="10%"></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.project.startdate')?>:</td>
+	<td><input type="text" id="startdate" value="<?= date('Y-m-d')?>" onclick="calendar(this, false)" class="short" /></td>
+	<td><?= $this->translate('column.project.finishdate')?>:</td>
+	<td align="right"><input type="text" id="finishdate" value="<?= date('Y-m-d', time() + 3600 * 24 * 90)?>" onclick="calendar(this,false)" class="short" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.project.status')?>:</td>
+	<td><select id="status" class="short">
+		<option value=""></option>
+	    <?php
+	        $common = new Common();
+	        $projectStatus = $common->parseDefinition('project-status');
+	        $count = count($projectStatus);
+	        echo '<option value="' , $projectStatus[0] , '" selected>' , $projectStatus[0] , '</option>';
+		    for ($i = 1; $i < $count; $i++) {
+                echo '<option value="' , $projectStatus[$i] , '">' , $projectStatus[$i] , '</option>';
+		    }
+	    ?>
+	</select>
+	</td>
+	<td><?= $this->translate('column.project.customer')?>:</td>
+	<td align="right">
+	<select id="customerid" class="short">
+		<option value=""></option>
+	    <?php
+		    foreach ($this->customer as $customer) {
+                echo '<option value="' , $customer['customerid'] , '">' , $customer['custname'] , '</option>';
+		    }
+	    ?>
+	</select>
+	</td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.project.member')?>:</td>
+	<td colspan="3">
+		<input type="text" id="member" class="long" value="<?= $this->translate('tip.project.member.operate')?>" /><br />
+		<div id="memberPanel" class="itemlist">
+			<table class="table-embedded">
+			<thead>
+			<tr>
+				<th width="20%"><?= $this->translate('column.common.id')?></th>
+				<th width="30%"><?= $this->translate('column.user.username')?></th>
+				<th width="30%"><?= $this->translate('column.user.role')?></th>
+				<th width="20%"><?= $this->translate('column.common.operate')?></th>
+			</tr>
+			</thead>
+			<tbody id="memberList"></tbody>
+			<tr>
+				<td><strong><?= $this->translate('tip.project.member.add')?>:</strong></td>
+				<td colspan="2">
+					<select id="userid" class="long">
+					<?php foreach ($this->user as $user)
+						echo '<option value="' , $user['userid'] , '">' , $user['username'] , '</option>';
+					?>
+					</select>
+				</td>
+				<td><input type='button' onclick='projectMemberAdd()' value=<?= $this->translate('common.button.add')?> /></td>
+			</tr>
+			</table>
+		</div>
+	</td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.project.overview')?>:</td>
+	<td colspan="3"><textarea id="overview" class="middle"></textarea></td>
+	<td></td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+	<td><?= $this->translate('common.page.operate')?>:</td>
+	<td><span id="actionButton" /></td>
+	<td colspan="3">
+		<span id="msg" class="message"><?= $this->translate('tip.common.action')?></span>
+		<span id="loading" class="loading"><img src="<?= Zend_Registry::get('baseDir')?>/Common/Image/loading.gif" /></span>
+	</td>
+</tr>
+</tfoot>
+</table>
+
+<br />
+<table class="table-data" id="dataTable">
+<thead>
+<tr>
+    <th><?= $this->translate('column.common.id')?></th>
+    <th><?= $this->translate('column.project.projname')?></th>
+    <th><?= $this->translate('column.project.startdate')?></th>
+    <th><?= $this->translate('column.project.finishdate')?></th>
+    <th><?= $this->translate('column.project.status')?></th>
+    <th><?= $this->translate('column.project.customer')?></th>
+    <th><?= $this->translate('column.common.operate')?></th>
+</tr>
+</thead>
+<tbody id="dataPanel"></tbody>
+<tfoot id="footer"></tfoot>
+</table>

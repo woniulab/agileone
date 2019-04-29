@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Welcome to Install Agileone</title>
+<script language="JavaScript" type="text/javascript" src="../Library/JQuery/jquery.js"></script>
+<style type="text/css" rel="stylesheet">
+a:link, a:visited {color: #0099CC;}
+a:hover, a:active {color: #FF3300;}
+input {width: 153px;}
+select {width: 158px !important; width: 160px;}
+</style>
+</head>
+<body style="margin: 1px; font-size: 12px; font-family: Verdana">
+<div id="header" style="border: solid 1px #0099CC; background-image: url(../Common/Image/headerbg.gif); width: 800px; height: 54px; margin: 0 auto;">
+	<div id="logo" style="width: 200px; padding: 5px 10px 1px 10px; float: left;">
+		<img src="../Common/Image/agileone.gif" />
+	</div>
+	<div id="lang" style="width: 400px; float: right; text-align: right; padding: 18px; font-size: 14px;">
+		<a href="#" onclick="chlang('zh')" style="color: #FFFFFF"><span id="chinese"></span></a>&nbsp;&nbsp;
+		<a href="#" onclick="chlang('en')" style="color: #FFFFFF"><span id="english"></span></a>
+	</div>
+</div>
+<div id="main" style="border: solid 1px #0099CC; width: 800px; margin: 0 auto;">
+	<table>
+		<tr><td colspan="2">
+			<div id="wtatitle" style="font-size: 14px; font-weight: bold; color: #0099CC; margin: 10px"></div>
+		<td></tr>
+		<tr><td colspan="2">
+			<div id="wtacontent" style="line-height: 150%; padding-left: 10px"></div>
+		</td></tr>
+		
+		<tr><td colspan="2">
+			<div id="pctitle" style="font-size: 14px; font-weight: bold; color: #0099CC; margin: 10px"></div>
+		<td></tr>
+		<tr><td colspan="2">
+			<div id="pccontent" style="line-height: 150%; padding-left: 10px"></div>
+		</td></tr>
+		
+		<tr><td colspan="2">
+			<div id="dbtitle" style="font-size: 14px; font-weight: bold; color: #0099CC; margin: 10px"></div>
+		</td></tr>
+		<tr>
+			<td width="30%"><span id="txtadapter" style="padding-left: 30px"></span></td>
+			<td width="70%"><select id="adapter">
+				<option value="PDO_MYSQL">PDO_MYSQL</option>
+				<option value="MYSQLI">MYSQLI</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td><span id="txthost" style="padding-left: 30px"></span></td>
+			<td><input type="text" id="host" value="localhost" /></td>
+		</tr>
+		<tr>
+			<td><span id="txtuser" style="padding-left: 30px"></span></td>
+			<td><input type="text" id="username" value="root" /></td>
+		</tr>
+		<tr>
+			<td><span id="txtpass" style="padding-left: 30px"></span></td>
+			<td><input type="password" id="password" value="" /></td>
+		</tr>
+		<tr>
+			<td><span id="txtname" style="padding-left: 30px"></span></td>
+			<td><input type="text" id="dbname" value="agileone" /></td>
+		</tr>
+		<tr>
+			<td height="40px"><span style="padding-left: 30px"><input type="button" id="create" onclick="createDBTable()" /></span></td>
+			<td><div id="message" style="color: #FF3300"></div></td>
+		</tr>
+	</table>
+</div>
+<div id="cacheDiv"></div>
+
+<script type="text/javascript">
+if (navigator.appName == 'Netscape') 
+	var language = navigator.language;
+else 
+	var language = navigator.browserLanguage;
+
+if (language.indexOf('zh') > -1) {
+	chlang("zh");
+}
+else {
+	chlang("en");
+}
+
+function chlang(type) {
+	if (type == "zh") {
+		$("#chinese").html("中文版");
+		$("#english").html("英文版");
+		$("#wtatitle").html("欢迎使用AgileOne:");
+		$("#wtacontent").html("<ol><li>蜗牛学院AgileOne是软件生命周期管理系统, 专为敏捷开发而生.</li>" +
+			"<li>已测平台: Redhat Linux 5.4 + Apache 2.2.4 + MySQL 5.0.56 + PHP 5.2.1.</li>" +
+			"<li>已测平台: Windows XP / 2003 + Apache 2.2.4 + MySQL 5.0.67 + PHP 5.2.6.</li>" +
+			"<li>已测客户端: IE 6.0 / Firefox 3.5.2 (其它未测平台不代表不能使用，可大胆尝试).</li>" +
+			"<li>项目网站: 蜗牛学院, <a href='http://www.woniuxy.com/'>点此查看最新版本及开发进展</a>.</li>" +
+			"<li>联系作者: 蜗牛学院，强子, QQ：15903523. 邮箱：dengqiang#woniuxy.com</li>" +
+			"</ol>");
+		$("#pctitle").html("安装前准备工作:");
+		$("#pccontent").html("<ol><li>平台要求: Linux/Windows + Apache 2.X + MySQL 5.X + PHP 5.2.X.</li>" +
+			"<li>目录权限: 目录/Attachment, /Cache及文件/Common/Configi/Global.conf 需要写权限.</li>" +
+			"<li>数据库: 只支持MySQL, 且需要PDO_MYSQL或MYSQLI驱动程序的支持 (<a href='info.php' target='_blank'>点此查看</a>).</li>" +
+			"<li>推荐平台: 为方便安装，推荐使用 <a href='http://www.apachefriends.org' target='_blank'>XAMPP</a> 作为安装介质 (支持多平台).</li>" +
+			"<li>注意事项: 为防止站点被再次初始化, 请在安装完成后删除或重命名目录 [Install].</li>" +
+			"</ol>");
+		$("#dbtitle").html("数据库配置信息:");
+		$("#txtadapter").html("数据库驱动类型:");
+		$("#txthost").html("数据库服务器:");
+		$("#txtuser").html("数据库用户名:");
+		$("#txtpass").html("数据库密码:");
+		$("#txtname").html("新建数据库名称:");
+		$("#create").val("创建数据库和表");
+		$("#message").html("提示: 创建数据库及表的相关结果信息显示于此 ...");
+		$("#cacheDiv").data("cacheData", "zh");
+	}
+	else {
+		$("#chinese").html("Chinese");
+		$("#english").html("English");
+		$("#wtatitle").html("Welcome to AgileOne:");
+		$("#wtacontent").html("<ol><li>AgileOne is a software lifecycle management system for Agile Development.</li>" +
+				"<li>Tested Platform: Redhat Linux 5.4 + Apache 2.2.4 + MySQL 5.0.56 + PHP 5.2.1.</li>" +
+				"<li>Tested Platform: Windows XP / 2003 + Apache 2.2.4 + MySQL 5.0.67 + PHP 5.2.6.</li>" +
+				"<li>Tested Client: IE 6.0 / Firefox 3.5.2 (You can try to use it on other untested platforms).</li>" +
+				"<li>Project Site: Woniu Institure, <a href='http://www.woniuxy.com/'>Click to Get Latest Version</a>.</li>" +
+				"<li>Contact Author: DengQiang, QQ: 15903523, Email: dengqiang#woniuxy.com.</li>" +
+				"</ol>");
+		$("#pctitle").html("Precondition:");
+		$("#pccontent").html("<ol><li>Recommended Platform: Linux/Windows + Apache 2.X + MySQL 5.X + PHP 5.2.X.</li>" +
+				"<li>Permission: Folder [/Attachment], [/Cache] and File [/Common/Config/Global.conf] needs [Write] permission.</li>" +
+				"<li>Database: Only support MySQL，and PDO_MYSQL/MYSQLI driver is needed (<a href='info.php' target='_blank'>Check Here</a>).</li>" +
+				"<li>Recommended：For easy to install, recommend to use <a href='http://www.apachefriends.org' target='_blank'>XAMPP</a> as the server package.</li>" +
+				"<li>Note：Please remove or rename the folder [Install] from this site after installation.</li>" +
+				"</ol>");
+		$("#dbtitle").html("Database Configuration:");
+		$("#txtadapter").html("Database Driver:");
+		$("#txthost").html("Database Host:");
+		$("#txtuser").html("Database Username:");
+		$("#txtpass").html("Database Password:");
+		$("#txtname").html("Database Name:");
+		$("#create").val("Create DB & Tables");
+		$("#message").html("Tip: Handling result message display here ...");
+		$("#cacheDiv").data("cacheData", "en");
+	}
+}
+
+function createDBTable() {
+	var url = "install.php";
+	var param = "adapter=" + $("#adapter").val() +
+				"&host=" + $("#host").val() +
+				"&username=" + $("#username").val() +
+				"&password=" + $("#password").val() +
+				"&dbname=" + $("#dbname").val() + 
+				"&lang=" + $("#cacheDiv").data("cacheData");
+	$.post(url, param, function (data) {
+		$("#message").html(data);
+		if (data.indexOf("successfully") > -1) {
+			$("#create").attr("disabled", true);
+		}
+	});
+}
+</script>
+
+</body>
+</html>

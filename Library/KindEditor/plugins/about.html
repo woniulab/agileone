@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>About</title>
+  <style type="text/css" rel="stylesheet">
+    body {
+    font-size: 12px;
+    font-family: Arial;
+    margin: 10px 10px 5px 30px;
+    /* background-color: #F0F0EE; */
+    background-color: #F2F9FD;
+    }
+    div.title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #FB7155;
+    margin-bottom: 5px;
+    }
+    td.left {
+    font-size: 12px;
+    padding: 2px;
+    }
+    td.right {
+    font-size: 12px;
+    padding: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="title">KindEditor</div>
+  <table border="0" cellpadding="0" cellspacing="0">
+    <tr>
+      <td class="left"><span id="version" /></td>
+      <td class="right">3.1.2</td>
+    </tr>
+    <tr>
+      <td class="left"><span id="support" /></td>
+      <td class="right"><a href="http://www.kindsoft.net/" target="_blank">http://www.kindsoft.net/</a></td>
+    </tr>
+  </table>
+<script type="text/javascript">
+if (navigator.appName == 'Netscape') 
+	var language = navigator.language; 
+else 
+	var language = navigator.browserLanguage;
+if (language.indexOf('zh') > -1) {
+	document.getElementById("version").innerHTML = "版本:";
+	document.getElementById("support").innerHTML = "技术支持:";
+}
+else {
+	document.getElementById("version").innerHTML = "Version:";
+	document.getElementById("support").innerHTML = "Technical Support:";
+} 
+</script>
+</body>
+</html>

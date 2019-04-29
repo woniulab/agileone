@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>User List</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="<?= Zend_Registry::get('baseDir')?>/Common/Layout/Default.css" />
+<script language="JavaScript" type="text/javascript" src="<?= Zend_Registry::get('baseDir')?>/Library/JQuery/jquery.js"></script>
+<script language="JavaScript">
+function fillUserList() {
+	$.ajax({
+		url: "<?= Zend_Registry::get('baseUrl')?>/user/query",
+		data: "",
+		success: function(data) {
+			var json = eval(data);
+	    	var lenJson = json.length;
+	    	var showData = "";
+   	    	for(i = 0; i < lenJson; i++)
+   	    	{
+   		    	showData += "<tr>";
+   		    	showData += "<td><input type='checkbox' class='checkbox' name='userlist' id='" + json[i]['userid'] + "'/></td>";
+   		    	showData += "<td>" + json[i]['userid'] + "</td>";
+   		    	showData += "<td>" + json[i]['username'] + "</td>";
+   		    	showData += "<td>" + json[i]['rolename'] + "</td>";
+   	    		showData += "</tr>";
+   	    	}
+   	    	$("#userList").html(showData);
+	    }
+	});
+}
+</script>
+</head>
+
+<body onload="fillUserList()">
+<table class="table-data">
+	<thead>
+	<tr class="bold">
+		<td></td>
+		<td><?= $this->translate('column.common.id')?></td>
+		<td><?= $this->translate('column.user.username')?></td>
+		<td><?= $this->translate('column.user.role')?></td>
+	</tr>
+	</thead>
+	<tbody id="userList"></tbody>
+</table>
+</body>
+</html>

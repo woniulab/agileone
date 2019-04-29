@@ -1,0 +1,240 @@
+<script type="text/javascript">
+var initUrl = "<?= Zend_Registry::get('baseUrl')?>/admin/role/query";
+var initParam = "currentpage=1";
+var columnName = new Array("roleid", "rolename", "roledesc");
+var operate = "edit,delete";
+var currentPage = "1";
+var module = new Array("dashboard", "notice", "minutes", "knowledge", "project", "task", "proposal", "userstory", "spec", "testcase", "execution", "defect");
+
+$(document).ready(function() {
+	fillData(initUrl, initParam, columnName, operate, currentPage);
+	markDisabled(Array("edit", "roleid"));
+	lenModule = module.length;
+	for (i=lenModule-1; i>=0; i--) {
+		var output = "<tr>";
+		output += "<td>" + module[i] + "</td>";
+		for (j=1; j<5; j++)
+			output += "<td><input type='checkbox' class='checkbox' id=" + module[i] + "_" + j + " /></td>";
+		output += "</tr>";
+		$("#actionPanel").prepend(output);
+	}
+});
+
+/* Parse the permission and fill out the checkbox */
+function parsePermission(json) {
+	for (var key in module) {
+    	var permission = json[0][module[key]];
+    	for (j=1; j<5; j++) {
+        	if (permission.substring(j-1,j) == 1)
+        		$("input[type=checkbox][id=" + module[key] + "_" + j + "]").attr("checked", true);
+        	else
+        		$("input[type=checkbox][id=" + module[key] + "_" + j + "]").attr("checked", false);
+    	}
+	}
+}
+
+/* Get all permission set from checkbox and combine to xxxx */
+function getPermissionAsParam() {
+	var param = "";
+	for (var key in module) {
+		var subparam = "";
+    	for (j=1; j<5; j++) {
+        	if ($("input[type=checkbox][id=" + module[key] + "_" + j + "]").attr("checked") == true)
+        		subparam += "1";
+        	else
+        		subparam += "0";
+    	}
+    	param += "&" + module[key] + "=" + subparam;
+	}
+	return param;
+}
+
+/* Fill data to action panel for Edit */
+function goEdit(obj, isEdit) {
+	var dataRow = $(obj).parent().parent().children();
+	if ($.trim(dataRow.eq(0).text()) <= 7)
+		markDisabled(Array("rolename"));
+	else
+		markEnabled(Array("rolename"));
+	var param = "roleid=" + dataRow.eq(0).text();
+	$.post(initUrl, param, function (data) {
+		var json = eval(data);
+    	var lenJson = json.length - 1;
+    	if (lenJson == 1) {
+        	parsePermission(json);
+        	$("#roleid").val(json[0]['roleid']);
+        	$("#rolename").val(json[0]['rolename']);
+        	$("#roledesc").val(json[0]['roledesc']);
+    	}
+    	else {
+        	$("#msg").text("<?= $this->translate('message.common.nodata')?>");
+    	}
+	});
+	
+	if (isEdit) {
+		markEnabled(Array("edit"));
+		markDisabled(Array("add", "roleid"));
+	}
+	else {
+		markDisabled(Array("edit"));
+		markEnabled(Array("add", "roleid"));
+	}
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	$("#actionPanel").show();
+	location.href = "#top";
+}
+
+/* Add new data */
+function doAdd() {
+	if (isNull("rolename")) {
+    	$("#msg").text("<?= $this->translate('message.role.rolename.null')?>");
+    	return false;
+    }
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/role/add";
+	var param = "rolename=" + $.trim($("#rolename").val()) + 
+			"&roledesc=" + $.trim($("#roledesc").val()) + 
+			getPermissionAsParam();
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "role_exist":
+    		$("#msg").text("<?= $this->translate('message.role.rolename.exist')?>");
+    		$("#rolename").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillData(initUrl, initParam, columnName, operate, currentPage);
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+    });
+}
+
+/* Edit existing data */
+function doEdit() {
+	if (isNull("rolename")) {
+    	$("#msg").text("<?= $this->translate('message.role.rolename.null')?>");
+    	return false;
+    }
+	var url = "<?= Zend_Registry::get('baseUrl')?>/admin/role/edit";
+	var param = "roleid=" + $.trim($("#roleid").val()) +
+			"&rolename=" + $.trim($("#rolename").val()) + 
+    		"&roledesc=" + $.trim($("#roledesc").val()) + 
+    		getPermissionAsParam();
+    $.post(url, param, function (data) {
+        switch (data) {
+        case "role_exist":
+        	$("#msg").text("<?= $this->translate('message.role.rolename.exist')?>");
+    		$("#rolename").focus();
+    		break;
+        case "1":
+	    	fillData(initUrl, initParam, columnName, operate, currentPage);
+	    	$("#msg").text("<?= $this->translate('message.common.edit.successful')?>" + $("#roleid").val());
+	    	break;
+	    default:
+	    	$("#msg").text("<?= $this->translate('message.common.edit.failed')?>" + $("#roleid").val());
+        }
+    });
+}
+
+/* Delete data according to ID */
+function doDelete(param) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var dataRow = $(param).parent().parent().children();
+	var roleid = $.trim(dataRow.eq(0).text());
+	if (roleid <= 7) {
+		$("#msg").text("<?= $this->translate('message.role.rolename.reserved')?>");
+		return false;
+	}
+	url = "<?= Zend_Registry::get('baseUrl')?>/admin/role/delete";
+	param = "roleid=" + roleid;
+	$.post(url, param, function(data) {
+		switch (data) {
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + roleid);
+			dataRow.remove();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + roleid);
+    		break;
+    	default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+/* Check all checkbox */
+function doCheckAll() {
+	$("input[type=checkbox]").attr("checked", true);
+}
+</script>
+<table class="table-action">
+<thead>
+<tr>
+	<a name="top"></a>
+    <td colspan="6"><?= $this->translate('common.page.panel')?>:&nbsp;&nbsp;
+    <label id="hideShow" /></td>
+</tr>
+</thead>
+<tr class="bold">
+	<td width="20%"><?= $this->translate('column.role.module')?></td>
+	<td width="10%"><?= $this->translate('common.button.add')?></td>
+	<td width="10%"><?= $this->translate('common.button.edit')?></td>
+	<td width="10%"><?= $this->translate('common.button.delete')?></td>
+	<td width="10%"><?= $this->translate('common.button.query')?></td>
+	<td width="40%"></td>
+</tr>
+<tbody id="actionPanel">
+<tr>
+	<td><?= $this->translate('column.common.id')?></td>
+	<td colspan="4"><input type="text" id="roleid" value="" class="long" /></td>
+	<td><span class="tip"><?= $this->translate('tip.common.forsearch')?></span></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.role.rolename')?></td>
+	<td colspan="4"><input type="text" id="rolename" value="" class="long" maxlength="30" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.role.desc')?></td>
+	<td colspan="4"><input type="text" id="roledesc" value="" class="long" /></td>
+	<td></td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+	<td colspan="4">
+		<input type="button" id="add" onclick="doAdd()" value="<?= $this->translate('common.button.add')?>" />&nbsp;&nbsp;
+		<input type="button" id="edit" onclick="doEdit()" value="<?= $this->translate('common.button.edit')?>" />&nbsp;&nbsp;
+		<input type="button" id="checkAll" onclick="doCheckAll()" value="<?= $this->translate('common.button.checkall')?>" />&nbsp;&nbsp;
+		<input type="button" id="reset" value="<?= $this->translate('common.button.reset')?>" />
+	</td>
+	<td colspan="2">
+		<span id="msg" class="message"><?= $this->translate('tip.common.action')?></span>
+		<span id="loading" class="loading"><img src="<?= Zend_Registry::get('baseDir')?>/Common/Image/loading.gif" /></span>
+	</td>
+</tr>
+</tfoot>
+</table>
+
+<br />
+<table class="table-data" id="dataTable">
+<thead>
+<tr>
+    <th class="id"><?= $this->translate('column.common.id')?></th>
+    <th><?= $this->translate('column.role.rolename')?></th>
+    <th><?= $this->translate('column.role.desc')?></th>
+    <th><?= $this->translate('column.common.operate')?></th>
+</tr>
+</thead>
+<tbody id="dataPanel"></tbody>
+<tfoot>
+<tr>
+	<td colspan="3"></td>
+	<td align="right">
+		<a href="#top"><strong><?= $this->translate('common.page.top')?></strong></a>
+	</td>
+</tr>
+</tfoot>
+</table>

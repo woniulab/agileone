@@ -1,0 +1,297 @@
+<script type="text/javascript">
+/* Page init setting for User */
+KE.show({
+    id : 'content',
+    cssPath : '<?= Zend_Registry::get('baseDir')?>/Common/Layout/KindEditor.css'
+});
+var initUrl = "<?= Zend_Registry::get('baseUrl')?>/proposal/query";
+var initParam = "currentpage=1";
+var columnName = new Array("proposalid", "headline", "type", "processed");
+var operate = "edit,delete,newus";
+var currentPage = "1";
+
+$(document).ready(function() {
+	fillData(initUrl, initParam, columnName, operate, currentPage);
+	markDisabled(Array("edit"));
+	$("#type").attr("selectedIndex", 1);
+	$("#importance").attr("selectedIndex", 2);
+});
+
+/* Fill data to action panel for Edit */
+function goEdit(obj, isEdit) {
+	var dataRow = $(obj).parent().parent().children();
+	var param = "proposalid=" + dataRow.eq(0).text();
+	$.post(initUrl, param, function (data) {
+		var json = eval(data);
+    	var lenJson = json.length - 1;
+    	if (lenJson == 1) {
+        	$("#proposalid").val(json[0]['proposalid']);
+        	$("#creator").val(json[0]['creator']);
+        	$("#type").val(json[0]['type']);
+        	$("#importance").val(json[0]['importance']);
+        	$("#headline").val(json[0]['headline']);
+        	$("#processresult").val(json[0]['processresult']);
+        	setKEContent('content', json[0]['content']);
+    	}
+    	else {
+        	$("#msg").text("<?= $this->translate('message.common.nodata')?>");
+    	}
+	});
+	if (isEdit) {
+		markEnabled(Array("edit"));
+		markDisabled(Array("add", "proposalid"));
+	}
+	else {
+		markDisabled(Array("edit"));
+		markEnabled(Array("add", "proposalid"));
+	}
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+	$("#actionPanel").show();
+	location.href = "#top";
+}
+
+/* Add new data */
+function doAdd() {
+	var content = replaceAmp(KE.util.getData('content'));
+    if (isNull("headline")) {
+    	$("#msg").text("<?= $this->translate('message.proposal.headline.null')?>");
+    	return false;
+    }
+    if ($.trim(content) == "") {
+		$("#msg").text("<?= $this->translate('message.proposal.content.null')?>");
+		KE.util.focus('content');
+		return false;
+	}
+	var url = "<?= Zend_Registry::get('baseUrl')?>/proposal/add";
+	var param = "type=" + $.trim($("#type").val()) + 
+			"&importance=" + $.trim($("#importance").val()) +
+			"&headline=" + $.trim($("#headline").val()) + 
+			"&content=" + content + 
+			"&processresult=" + $.trim($("#processresult").val());
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.add')?>");
+    		break;
+    	case "proposal_exist":
+    		$("#msg").text("<?= $this->translate('message.proposal.headline.exist')?>");
+    		$("#headline").focus();
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.add.failed')?>" + "Null");
+    		break;
+    	default:
+    		fillData(initUrl, initParam, columnName, operate, currentPage);
+    		$("#proposalid").val(data);
+    		$("#msg").text("<?= $this->translate('message.common.add.successful')?>" + data);
+    	}
+    });
+}
+
+/* Edit existing data */
+function doEdit() {
+	var content = replaceAmp(KE.util.getData('content'));
+	if (isNull("headline")) {
+    	$("#msg").text("<?= $this->translate('message.proposal.headline.null')?>");
+    	return false;
+    }
+    if ($.trim(content) == "") {
+		$("#msg").text("<?= $this->translate('message.proposal.content.null')?>");
+		KE.util.focus('content');
+		return false;
+	}
+    var proposalid = $.trim($("#proposalid").val());
+	var url = "<?= Zend_Registry::get('baseUrl')?>/proposal/edit";
+	var param = "proposalid=" + proposalid + 
+			"&type=" + $.trim($("#type").val()) + 
+			"&importance=" + $.trim($("#importance").val()) +
+			"&headline=" + $.trim($("#headline").val()) + 
+			"&content=" + content + 
+			"&processresult=" + $.trim($("#processresult").val());
+    $.post(url, param, function (data) {
+    	switch (data) {
+    	case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.edit')?>");
+    		break;
+    	case "proposal_exist":
+    		$("#msg").text("<?= $this->translate('message.proposal.headline.exist')?>");
+    		$("#headline").focus();
+    		break;
+    	case "1":
+    		fillEdit(initUrl, "proposalid=" + proposalid, columnName, proposalid);
+    		$("#msg").text("<?= $this->translate('message.common.edit.successful')?>" + $("#proposalid").val());
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.edit.failed')?>" + $("#proposalid").val());
+    		break;
+        default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+/* Delete data according to ID */
+function doDelete(obj) {
+	if(!confirm("<?= $this->translate('message.common.delete.confirm')?>"))
+		return false;
+	var dataRow = $(obj).parent().parent().children();
+	var proposalid = $.trim(dataRow.eq(0).text());
+	url = "<?= Zend_Registry::get('baseUrl')?>/proposal/delete";
+	param = "proposalid=" + proposalid;
+	$.post(url, param, function(data) {
+		switch (data) {
+		case "no_permission":
+    		$("#msg").text("<?= $this->translate('message.common.noperm.delete')?>");
+    		break;
+    	case "1":
+    		$("#msg").text("<?= $this->translate('message.common.delete.successful')?>" + proposalid);
+			dataRow.remove();
+			$("#totalRecord").text($("#totalRecord").text() - 1);
+    		break;
+    	case "error":
+    		$("#msg").text("<?= $this->translate('message.common.delete.failed')?>" + proposalid);
+    		break;
+    	default:
+    		$("#msg").text(data);
+    	}
+	});
+}
+
+/* Search data */
+function doSearch(isSearch, currentPage) {
+	if (isSearch) {
+		$("#cacheDiv").removeData("cacheData");
+		var cacheArray = new Array();
+		cacheArray['proposalid'] = $.trim($("#proposalid").val());
+		cacheArray['creator'] = $.trim($("#creator").val());
+		cacheArray['type'] = $.trim($("#type").val());
+		cacheArray['importance '] = $.trim($("#importance").val());
+		cacheArray['headline'] = $.trim($("#headline").val());
+		cacheArray['content'] = replaceAmp($.trim(KE.util.getPureData('content')));
+		cacheArray['processresult'] = $.trim($("#processresult").val());
+		$("#cacheDiv").data("cacheData", cacheArray);
+	}
+	var cacheData = $("#cacheDiv").data("cacheData");
+	if (typeof(cacheData) == "undefined")
+		var param = "currentpage=" + currentPage;
+	else
+		var param = "currentpage=" + currentPage +
+				"&proposalid=" + cacheData['proposalid'] + 
+		    	"&creator=" + cacheData['creator'] + 
+		    	"&type=" + cacheData['type'] + 
+		    	"&importance=" + cacheData['importance '] +
+		    	"&headline=" + cacheData['headline'] +
+		    	"&content=" + cacheData['content'] +
+		    	"&processresult=" + cacheData['processresult'];
+	fillData(initUrl, param, columnName, operate, currentPage);
+	$("#msg").text("<?= $this->translate('tip.common.action')?>");
+}
+
+/* Link to US page to new US */
+function newUserStory(param) {
+	var data = $(param).parent().parent().children();
+	var proposalid = data.eq(0).text();
+	location.href = "<?= Zend_Registry::get('baseUrl')?>/userstory/index/proposalid/" + proposalid;
+}
+
+/* Reset KE content */
+function resetKE() {
+	setKEContent("content", "");
+}
+</script>
+
+<br />
+<table class="table-action">
+<thead>
+<tr>
+	<a name="top"></a>
+	<td colspan="5">
+	    <?= $this->translate('common.page.panel')?>:&nbsp;&nbsp;
+	    <label id="hideShow" />
+	</td>
+</tr>
+</thead>
+<tbody id="actionPanel">
+<tr>
+	<td width="14%"><?= $this->translate('column.common.id')?>:</td>
+	<td width="36%"><input type="text" id="proposalid" class="short" title="<?= $this->translate('tip.common.forsearch')?>" /></td>
+	<td width="15%"><?= $this->translate('column.proposal.creator')?>:</td>
+	<td width="25%" align="right"><input type="text" id="creator" maxlength="30" value="<?= $_SESSION['userName']?>" class="short" title="<?= $this->translate('tip.common.forsearch')?>" /></td>
+	<td width="10%"></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.proposal.type')?>:</td>
+	<td>
+	<select id="type" class="short">
+		<option value=""></option>
+	    <?php
+	        $common = new Common();
+	        $proposalType = $common->parseDefinition('proposal-type');
+		    foreach ($proposalType as $pt) {
+                echo '<option value="' , $pt , '">' , $pt , '</option>';
+		    }
+	    ?>
+	</select>
+	</td>
+	<td><?= $this->translate('column.proposal.importance')?>:</td>
+	<td align="right">
+	<select id="importance" class="short">
+		<option value=""></option>
+	    <?php
+	        $common = new Common();
+	        $proposalImportance = $common->parseDefinition('proposal-importance');
+		    foreach ($proposalImportance as $pt) {
+                echo '<option value="' , $pt , '">' , $pt , '</option>';
+		    }
+	    ?>
+	</select>
+	</td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.proposal.headline')?>:</td>
+	<td colspan="3"><input type="text" id="headline" maxlength="250" class="long" /></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.proposal.content')?>:</td>
+	<td colspan="3"><textarea id="content" class="long"></textarea></td>
+	<td></td>
+</tr>
+<tr>
+	<td><?= $this->translate('column.proposal.processresult')?>:</td>
+	<td colspan="3">
+	<div style="line-height: 250%">
+		<span class="tip"><?= $this->translate('tip.proposal.processresult')?></span><br />
+		<input type="text" id="processresult" class="long" />
+	</div>
+	</td>
+	<td></td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+	<td><?= $this->translate('common.page.operate')?>:</td>
+	<td><span id="actionButton" /></td>
+	<td colspan="3">
+		<span id="msg" class="message"><?= $this->translate('tip.common.action')?></span>
+		<span id="loading" class="loading"><img src="<?= Zend_Registry::get('baseDir')?>/Common/Image/loading.gif" /></span>
+	</td>
+</tr>
+</tfoot>
+</table>
+
+<br />
+<table class="table-data" id="dataTable">
+<thead>
+<tr>
+    <th width="8%" class="id"><?= $this->translate('column.common.id')?></th>
+    <th width="40%"><?= $this->translate('column.proposal.headline')?></th>
+    <th width="15%"><?= $this->translate('column.proposal.type')?></th>
+    <th width="12%"><?= $this->translate('column.proposal.processed')?></th>
+    <th width="25%"><?= $this->translate('column.common.operate')?></th>
+</tr>
+</thead>
+<tbody id="dataPanel"></tbody>
+<tfoot id="footer"></tfoot>
+</table>
