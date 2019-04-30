@@ -1,5 +1,7 @@
 # Agileone项目管理系统
 ## 蜗牛学院实验室-出品(http://www.woniuxy.com)
+版权声明：蜗牛学院自用学员调查问卷系统，仅供学习交流和内部使用，请显式声明版权信息（Powered By 蜗牛学院实验室），请勿用于商业目的。
+
 
 AgileOne中最核心的两个概念便是”Milestone”和”UserStory”，一切计划均以Milestone为周期，一切活动均以UserStory为核心。一来以Milestone体现敏捷开发中关于迭代周期的思想，二来以UserStory体现传统过程中的以需求为导向的方法论。请看下图：
 
