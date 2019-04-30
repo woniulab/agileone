@@ -63,4 +63,4 @@ AgileOne的直接受益对象将是中小企业，我们设计的流程非常简
 
 AgileOne项目网址： https://github.com/woniulab/agileone
 
-蜗牛学院：http://www.woniuxy.com   &nbsp;&nbsp;&nbsp:&nbsp;蜗牛笔记：http://www.woniuxy.com/note
+蜗牛学院：http://www.woniuxy.com &nbsp;&nbsp;&nbsp;&nbsp;蜗牛笔记：http://www.woniuxy.com/note
