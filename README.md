@@ -5,7 +5,7 @@ AgileOne中最核心的两个概念便是”Milestone”和”UserStory”，一
 
 <img src="https://raw.githubusercontent.com/woniulab/agileone/master/Docs/Agileone_Process.jpg" width="500"/> 
 
-### 什么公司或者团队适合使用AgileOne?
+### 1.什么公司或者团队适合使用AgileOne?
 AgileOne的直接受益对象将是中小企业，我们设计的流程非常简化，既照顾到风险的可能性又不失敏捷性。特别是流程不太规范又想有所突破的企业将用最少的成本达到规范化的目的。另外，请回答以下几个问题，如果有任何一个答案是“是”，那么你就是适合使用AgileOne的对象。
 1)	你想通过引入敏捷开发思想来提高公司的生产力吗？
 2)	你的团队想解放思想，抛开繁文缛节而专注于核心业务吗？
@@ -17,10 +17,10 @@ AgileOne的直接受益对象将是中小企业，我们设计的流程非常简
 8)	你是否已经厌倦了前人们的思想，想有所创新却有苦于无处下手呢？
 9)	你是否觉得大公司的管理工具费用高得吓人，想改变却无力支付上百万的License费用呢？
 
-### AgileOne的核心模块：
+### 2.AgileOne的核心模块：
 从AgileOne的基本流程图我们可以看到，其核心模块分为两大类，组织级和项目级：
 
-#### 组织级：
+#### 1).组织级：
 用户管理：管理用户，与项目关联及用户的角色设定。
 客户管理：管理客户，与项目关联。
 项目管理：设定项目及项目级成员，设定项目的开始结束日期及其它基本信息。
@@ -36,7 +36,7 @@ AgileOne的直接受益对象将是中小企业，我们设计的流程非常简
 产品版本，测试平台和模块管理：相互之间建立关联，容易追溯，变更管理更容易。
 实时报表管理：项目进度报告，用户故事完成进度，测试用例执行结果，BUG相关报表等。
 
-### AgileOne的产品特点：
+### 2).AgileOne的产品特点：
 简单：简化流程，简化使用，简化文档管理。
 回溯：从用户故事，规格设计，到测试用例和缺陷跟踪，均建立一对一关联，易于回溯和变更。
 统一：统一标准，统一格式，统一管理方式。
@@ -44,22 +44,23 @@ AgileOne的直接受益对象将是中小企业，我们设计的流程非常简
 自定义：可自定义术语，语言，类型。
 免费：产品本身免费，新版本也可免费升级，并且开源社区将提供更多的支持。
 
-### AgileOne截图预览：
+### 3.AgileOne截图预览：
 我们将截取一些常用功能操作画面，以期给用户提供一个直观的印象。
 所有界面布局完全一样，操作方法也类似，所以用户可窥一斑而知全貌。
 
-#### 日常操作界面(用户故事)：
+#### 1).日常操作界面(用户故事)：
 
 <img src="https://raw.githubusercontent.com/woniulab/agileone/master/Docs/UserStory-CH.png" width="800"/>
 
-#### 用户故事英文对照界面(默认提供中英文两种语言，用户可自行添加)：
+#### 2).用户故事英文对照界面(默认提供中英文两种语言，用户可自行添加)：
 <img src="https://raw.githubusercontent.com/woniulab/agileone/master/Docs/UserStory-EN.png" width="800"/>
 
-#### 缺陷管理主界面：
+#### 3).缺陷管理主界面：
 <img src="https://raw.githubusercontent.com/woniulab/agileone/master/Docs/DefectManagement.png" width="800"/>
 
-#### 用户管理界面(仅管理员可见)：
+#### 4).用户管理界面(仅管理员可见)：
 <img src="https://raw.githubusercontent.com/woniulab/agileone/master/Docs/UserManagement.png" width="800"/>
 
 AgileOne项目网址： https://github.com/woniulab/agileone
-蜗牛学院在线课堂：http://www.woniuxy.com
+
+蜗牛学院：http://www.woniuxy.com   &nbsp;&nbsp;&nbsp:&nbsp;蜗牛笔记：http://www.woniuxy.com/note
